@@ -24,7 +24,7 @@ export default function AddressAutocomplete({
 
   const autocompleteOptions = useMemo(
     () => ({
-      types: ["address"],
+      types: ["geocode", "establishment"],
       fields: ["formatted_address", "geometry"], // keep to Places "Basic Data" (cheapest tier)
       ...(countryRestriction ? { componentRestrictions: { country: countryRestriction } } : {}),
     }),
