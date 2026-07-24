@@ -56,6 +56,23 @@ export async function POST(request) {
   }
 
   const orderedDeliveryIds = result.waypointOrder.map((idx) => deliveries[idx].id);
+  const orderedDeliveryIdSet = new Set(orderedDeliveryIds);
+
+  // This vehicle's previous route may have included deliveries that aren't
+  // part of the new one (e.g. a re-optimize with a different stop set). Those
+  // would otherwise be left permanently "assigned" to a route that no longer
+  // contains them — free them back to pending so they can be reassigned.
+  listDeliveries()
+    .filter((d) => d.assignedVehicleId === vehicleId && !orderedDeliveryIdSet.has(d.id))
+    .forEach((d) => {
+      updateDelivery(d.id, {
+        assignedVehicleId: null,
+        assignedDriverId: null,
+        sequence: null,
+        status: "pending",
+      });
+    });
+
   const driver = listDrivers().find((d) => d.vehicleId === vehicleId) || null;
   const distanceKm = result.totalDistanceMeters / 1000;
   const estimatedCost = Math.round(distanceKm * settings.fuelCostPerKm * 100) / 100;

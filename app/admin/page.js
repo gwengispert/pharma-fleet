@@ -4,13 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/apiClient";
 import { decodePolyline } from "@/lib/polyline";
-import VehicleForm from "@/components/VehicleForm";
+import VehicleForm, { VEHICLE_TYPES } from "@/components/VehicleForm";
 import DriverForm from "@/components/DriverForm";
 import DeliveryForm from "@/components/DeliveryForm";
 import DeliveryTable from "@/components/DeliveryTable";
 import RouteSummary from "@/components/RouteSummary";
 import MapView from "@/components/MapView";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
+import { assignDeliveriesToVehicles } from "@/lib/vehicleAssignment";
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const TABS = ["Settings", "Vehicles", "Drivers", "Deliveries", "Assign & Optimize", "Data"];
@@ -103,6 +104,10 @@ export default function AdminPage() {
               />
               <VehicleTable
                 vehicles={vehicles}
+                onUpdate={async (id, patch) => {
+                  const updated = await api.patch(`/api/vehicles/${id}`, patch);
+                  setVehicles((vs) => vs.map((v) => (v.id === id ? updated : v)));
+                }}
                 onDelete={async (id) => {
                   await api.del(`/api/vehicles/${id}`);
                   await loadAll();
@@ -114,7 +119,7 @@ export default function AdminPage() {
           {tab === "Drivers" && (
             <section className="flex flex-col gap-4">
               <DriverForm
-                vehicles={vehicles}
+                vehicles={vehicles.filter((v) => !drivers.some((d) => d.vehicleId === v.id))}
                 onCreate={async (data) => {
                   const driver = await api.post("/api/drivers", data);
                   setDrivers((d) => [...d, driver]);
@@ -122,7 +127,12 @@ export default function AdminPage() {
               />
               <DriverTable
                 drivers={drivers}
+                vehicles={vehicles}
                 vehiclesById={vehiclesById}
+                onUpdate={async (id, patch) => {
+                  const updated = await api.patch(`/api/drivers/${id}`, patch);
+                  setDrivers((ds) => ds.map((d) => (d.id === id ? updated : d)));
+                }}
                 onDelete={async (id) => {
                   await api.del(`/api/drivers/${id}`);
                   await loadAll();
@@ -134,6 +144,7 @@ export default function AdminPage() {
           {tab === "Deliveries" && (
             <section className="flex flex-col gap-4">
               <DeliveryForm
+                apiKey={GOOGLE_MAPS_API_KEY}
                 onCreate={async (data) => {
                   const delivery = await api.post("/api/deliveries", data);
                   setDeliveries((d) => [...d, delivery]);
@@ -143,6 +154,11 @@ export default function AdminPage() {
                 deliveries={deliveries}
                 vehiclesById={vehiclesById}
                 driversById={driversById}
+                apiKey={GOOGLE_MAPS_API_KEY}
+                onUpdate={async (id, patch) => {
+                  const updated = await api.patch(`/api/deliveries/${id}`, patch);
+                  setDeliveries((ds) => ds.map((d) => (d.id === id ? updated : d)));
+                }}
                 onDelete={async (id) => {
                   await api.del(`/api/deliveries/${id}`);
                   await loadAll();
@@ -230,6 +246,7 @@ function SettingsPanel({ settings, onSaved }) {
             onChange={handleAddressChange}
             onPlaceSelected={handlePlaceSelected}
             countryRestriction="ph"
+            coords={depotCoords}
             placeholder="123 Rizal Ave, Makati City, Metro Manila"
             className="w-full max-w-lg rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
           />
@@ -264,7 +281,9 @@ function SettingsPanel({ settings, onSaved }) {
   );
 }
 
-function VehicleTable({ vehicles, onDelete }) {
+function VehicleTable({ vehicles, onUpdate, onDelete }) {
+  const [editingId, setEditingId] = useState(null);
+
   if (vehicles.length === 0) return <p className="text-sm text-neutral-500">No vehicles yet.</p>;
   return (
     <div className="overflow-x-auto">
@@ -279,33 +298,136 @@ function VehicleTable({ vehicles, onDelete }) {
           </tr>
         </thead>
         <tbody>
-          {vehicles.map((v) => (
-            <tr key={v.id} className="border-b border-neutral-100 dark:border-neutral-900">
-              <td className="py-2 pr-3 font-medium">
-                {v.name}
-                {v.refrigerated && (
-                  <span className="ml-1 text-xs text-sky-600" title="Refrigerated">
-                    ❄
-                  </span>
-                )}
-              </td>
-              <td className="py-2 pr-3 text-neutral-500">{v.type}</td>
-              <td className="py-2 pr-3 text-neutral-500">{v.capacityKg ? `${v.capacityKg} kg` : "—"}</td>
-              <td className="py-2 pr-3 text-neutral-500">{v.status}</td>
-              <td className="py-2 text-right">
-                <button onClick={() => onDelete(v.id)} className="text-xs text-neutral-400 hover:text-red-600">
-                  delete
-                </button>
-              </td>
-            </tr>
-          ))}
+          {vehicles.map((v) =>
+            editingId === v.id ? (
+              <VehicleEditRow
+                key={v.id}
+                vehicle={v}
+                onCancel={() => setEditingId(null)}
+                onSave={async (patch) => {
+                  await onUpdate(v.id, patch);
+                  setEditingId(null);
+                }}
+              />
+            ) : (
+              <tr key={v.id} className="border-b border-neutral-100 dark:border-neutral-900">
+                <td className="py-2 pr-3 font-medium">
+                  {v.name}
+                  {v.refrigerated && (
+                    <span className="ml-1 text-xs text-sky-600" title="Refrigerated">
+                      ❄
+                    </span>
+                  )}
+                </td>
+                <td className="py-2 pr-3 text-neutral-500">{v.type}</td>
+                <td className="py-2 pr-3 text-neutral-500">{v.capacityKg ? `${v.capacityKg} kg` : "—"}</td>
+                <td className="py-2 pr-3 text-neutral-500">{v.status}</td>
+                <td className="py-2 text-right whitespace-nowrap">
+                  <button
+                    onClick={() => setEditingId(v.id)}
+                    className="mr-3 text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+                  >
+                    edit
+                  </button>
+                  <button onClick={() => onDelete(v.id)} className="text-xs text-neutral-400 hover:text-red-600">
+                    delete
+                  </button>
+                </td>
+              </tr>
+            )
+          )}
         </tbody>
       </table>
     </div>
   );
 }
 
-function DriverTable({ drivers, vehiclesById, onDelete }) {
+function VehicleEditRow({ vehicle, onSave, onCancel }) {
+  const [name, setName] = useState(vehicle.name);
+  const [type, setType] = useState(vehicle.type);
+  const [capacityKg, setCapacityKg] = useState(vehicle.capacityKg ?? "");
+  const [refrigerated, setRefrigerated] = useState(vehicle.refrigerated);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function handleSave() {
+    if (!name.trim()) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await onSave({
+        name: name.trim(),
+        type,
+        capacityKg: capacityKg === "" ? null : Number(capacityKg),
+        refrigerated,
+      });
+    } catch (err) {
+      setError(err.message);
+      setSaving(false);
+    }
+  }
+
+  return (
+    <tr className="border-b border-neutral-100 dark:border-neutral-900">
+      <td className="py-2 pr-3">
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+        />
+      </td>
+      <td className="py-2 pr-3">
+        <div className="flex items-center gap-2">
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+            className="rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          >
+            {VEHICLE_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+          <label className="flex items-center gap-1 text-xs text-neutral-500" title="Refrigerated">
+            <input
+              type="checkbox"
+              checked={refrigerated}
+              onChange={(e) => setRefrigerated(e.target.checked)}
+            />
+            ❄
+          </label>
+        </div>
+      </td>
+      <td className="py-2 pr-3">
+        <input
+          type="number"
+          value={capacityKg}
+          onChange={(e) => setCapacityKg(e.target.value)}
+          className="w-20 rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+        />
+      </td>
+      <td className="py-2 pr-3 text-neutral-500">{vehicle.status}</td>
+      <td className="py-2 text-right whitespace-nowrap">
+        <button
+          onClick={handleSave}
+          disabled={saving || !name.trim()}
+          className="mr-3 text-xs font-medium text-neutral-900 hover:underline disabled:opacity-50 dark:text-white"
+        >
+          {saving ? "Saving…" : "save"}
+        </button>
+        <button onClick={onCancel} className="text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200">
+          cancel
+        </button>
+        {error && <div className="text-xs text-red-600">{error}</div>}
+      </td>
+    </tr>
+  );
+}
+
+function DriverTable({ drivers, vehicles, vehiclesById, onUpdate, onDelete }) {
+  const [editingId, setEditingId] = useState(null);
+
   if (drivers.length === 0) return <p className="text-sm text-neutral-500">No drivers yet.</p>;
   return (
     <div className="overflow-x-auto">
@@ -319,21 +441,108 @@ function DriverTable({ drivers, vehiclesById, onDelete }) {
           </tr>
         </thead>
         <tbody>
-          {drivers.map((d) => (
-            <tr key={d.id} className="border-b border-neutral-100 dark:border-neutral-900">
-              <td className="py-2 pr-3 font-medium">{d.name}</td>
-              <td className="py-2 pr-3 text-neutral-500">{d.phone || "—"}</td>
-              <td className="py-2 pr-3 text-neutral-500">{vehiclesById[d.vehicleId]?.name || "—"}</td>
-              <td className="py-2 text-right">
-                <button onClick={() => onDelete(d.id)} className="text-xs text-neutral-400 hover:text-red-600">
-                  delete
-                </button>
-              </td>
-            </tr>
-          ))}
+          {drivers.map((d) =>
+            editingId === d.id ? (
+              <DriverEditRow
+                key={d.id}
+                driver={d}
+                vehicles={vehicles.filter(
+                  (v) => v.id === d.vehicleId || !drivers.some((other) => other.id !== d.id && other.vehicleId === v.id)
+                )}
+                onCancel={() => setEditingId(null)}
+                onSave={async (patch) => {
+                  await onUpdate(d.id, patch);
+                  setEditingId(null);
+                }}
+              />
+            ) : (
+              <tr key={d.id} className="border-b border-neutral-100 dark:border-neutral-900">
+                <td className="py-2 pr-3 font-medium">{d.name}</td>
+                <td className="py-2 pr-3 text-neutral-500">{d.phone || "—"}</td>
+                <td className="py-2 pr-3 text-neutral-500">{vehiclesById[d.vehicleId]?.name || "—"}</td>
+                <td className="py-2 text-right whitespace-nowrap">
+                  <button
+                    onClick={() => setEditingId(d.id)}
+                    className="mr-3 text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+                  >
+                    edit
+                  </button>
+                  <button onClick={() => onDelete(d.id)} className="text-xs text-neutral-400 hover:text-red-600">
+                    delete
+                  </button>
+                </td>
+              </tr>
+            )
+          )}
         </tbody>
       </table>
     </div>
+  );
+}
+
+function DriverEditRow({ driver, vehicles, onSave, onCancel }) {
+  const [name, setName] = useState(driver.name);
+  const [phone, setPhone] = useState(driver.phone || "");
+  const [vehicleId, setVehicleId] = useState(driver.vehicleId || "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function handleSave() {
+    if (!name.trim()) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await onSave({ name: name.trim(), phone: phone.trim(), vehicleId: vehicleId || null });
+    } catch (err) {
+      setError(err.message);
+      setSaving(false);
+    }
+  }
+
+  return (
+    <tr className="border-b border-neutral-100 dark:border-neutral-900">
+      <td className="py-2 pr-3">
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+        />
+      </td>
+      <td className="py-2 pr-3">
+        <input
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="w-full rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+        />
+      </td>
+      <td className="py-2 pr-3">
+        <select
+          value={vehicleId}
+          onChange={(e) => setVehicleId(e.target.value)}
+          className="rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+        >
+          <option value="">Unassigned</option>
+          {vehicles.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.name}
+            </option>
+          ))}
+        </select>
+      </td>
+      <td className="py-2 text-right whitespace-nowrap">
+        <button
+          onClick={handleSave}
+          disabled={saving || !name.trim()}
+          className="mr-3 text-xs font-medium text-neutral-900 hover:underline disabled:opacity-50 dark:text-white"
+        >
+          {saving ? "Saving…" : "save"}
+        </button>
+        <button onClick={onCancel} className="text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200">
+          cancel
+        </button>
+        {error && <div className="text-xs text-red-600">{error}</div>}
+      </td>
+    </tr>
   );
 }
 
@@ -350,6 +559,9 @@ function AssignOptimizePanel({
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [optimizing, setOptimizing] = useState(false);
   const [error, setError] = useState(null);
+  const [autoAssigning, setAutoAssigning] = useState(false);
+  const [autoAssignError, setAutoAssignError] = useState(null);
+  const [autoAssignResult, setAutoAssignResult] = useState(null);
 
   // Reset the selection when the vehicle changes, without an effect
   // (see: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes).
@@ -381,6 +593,34 @@ function AssignOptimizePanel({
     }
   }
 
+  async function handleAutoAssign() {
+    setAutoAssigning(true);
+    setAutoAssignError(null);
+    setAutoAssignResult(null);
+    try {
+      const eligible = pendingDeliveries.filter((d) => d.lat != null && d.lng != null);
+      const { groups, unassigned } = assignDeliveriesToVehicles(eligible, vehicles);
+
+      for (const [vId, group] of groups) {
+        await api.post("/api/routes/optimize", {
+          vehicleId: vId,
+          deliveryIds: group.map((d) => d.id),
+        });
+      }
+
+      setAutoAssignResult({
+        vehicleCount: groups.size,
+        deliveryCount: eligible.length - unassigned.length,
+        unassigned,
+      });
+      await onOptimized();
+    } catch (err) {
+      setAutoAssignError(err.message);
+    } finally {
+      setAutoAssigning(false);
+    }
+  }
+
   if (vehicles.length === 0) {
     return <p className="text-sm text-neutral-500">Add a vehicle first.</p>;
   }
@@ -402,6 +642,41 @@ function AssignOptimizePanel({
 
   return (
     <div className="flex flex-col gap-4">
+      <Section title="Auto-assign by weight">
+        <p className="text-sm text-neutral-500">
+          Assigns every pending delivery to a vehicle that can carry its weight (matching
+          refrigeration needs to refrigerated vehicles), then computes each vehicle&apos;s
+          shortest route with Google&apos;s route optimization.
+        </p>
+        <div>
+          <button
+            onClick={handleAutoAssign}
+            disabled={autoAssigning || pendingDeliveries.length === 0}
+            className="rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
+          >
+            {autoAssigning ? "Assigning…" : "Auto-assign & optimize routes"}
+          </button>
+          {autoAssignError && <span className="ml-3 text-sm text-red-600">{autoAssignError}</span>}
+        </div>
+        {autoAssignResult && (
+          <div className="text-sm text-neutral-600 dark:text-neutral-300">
+            <p>
+              Assigned {autoAssignResult.deliveryCount} deliveries across {autoAssignResult.vehicleCount}{" "}
+              vehicle{autoAssignResult.vehicleCount === 1 ? "" : "s"}.
+            </p>
+            {autoAssignResult.unassigned.length > 0 && (
+              <p className="text-amber-600">
+                Couldn&apos;t fit: {autoAssignResult.unassigned.map((d) => d.customerName).join(", ")} — no
+                vehicle had enough remaining capacity{" "}
+                {autoAssignResult.unassigned.some((d) => d.requiresRefrigeration) &&
+                  "(or lacked refrigeration)"}
+                .
+              </p>
+            )}
+          </div>
+        )}
+      </Section>
+
       <Section title="Choose vehicle & stops">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-neutral-500">Vehicle</label>

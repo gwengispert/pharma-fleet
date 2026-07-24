@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const VEHICLE_TYPES = ["van", "truck", "refrigerated truck", "motorcycle"];
+export const VEHICLE_TYPES = ["van", "truck", "refrigerated truck", "motorcycle"];
 
 export default function VehicleForm({ onCreate }) {
   const [name, setName] = useState("");

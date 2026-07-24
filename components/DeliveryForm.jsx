@@ -1,15 +1,28 @@
 "use client";
 
 import { useState } from "react";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 
-export default function DeliveryForm({ onCreate }) {
+export default function DeliveryForm({ apiKey, onCreate }) {
   const [customerName, setCustomerName] = useState("");
   const [address, setAddress] = useState("");
+  const [coords, setCoords] = useState(null);
+  const [weightKg, setWeightKg] = useState("");
   const [priority, setPriority] = useState("normal");
   const [requiresRefrigeration, setRequiresRefrigeration] = useState(false);
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+
+  function handleAddressChange(newValue) {
+    setAddress(newValue);
+    setCoords(null); // typed manually — needs re-geocoding on save
+  }
+
+  function handlePlaceSelected({ address: resolvedAddress, lat, lng }) {
+    setAddress(resolvedAddress);
+    setCoords({ lat, lng });
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -17,15 +30,23 @@ export default function DeliveryForm({ onCreate }) {
     setSubmitting(true);
     setError(null);
     try {
-      await onCreate({
+      const payload = {
         customerName: customerName.trim(),
         address: address.trim(),
         priority,
         requiresRefrigeration,
         notes: notes.trim(),
-      });
+        weightKg: weightKg === "" ? null : Number(weightKg),
+      };
+      if (coords) {
+        payload.lat = coords.lat;
+        payload.lng = coords.lng;
+      }
+      await onCreate(payload);
       setCustomerName("");
       setAddress("");
+      setCoords(null);
+      setWeightKg("");
       setPriority("normal");
       setRequiresRefrigeration(false);
       setNotes("");
@@ -48,17 +69,32 @@ export default function DeliveryForm({ onCreate }) {
             className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
           />
         </div>
-        <div className="flex flex-[2] min-w-[240px] flex-col gap-1">
+        <div className="flex flex-[2] min-w-[280px] flex-col gap-1">
           <label className="text-xs text-neutral-500">Address</label>
-          <input
+          <AddressAutocomplete
+            apiKey={apiKey}
             value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="123 Main St, Springfield, IL"
-            className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            onChange={handleAddressChange}
+            onPlaceSelected={handlePlaceSelected}
+            countryRestriction="ph"
+            coords={coords}
+            placeholder="123 Rizal Ave, Makati City, Metro Manila"
+            className="w-full rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
           />
         </div>
       </div>
       <div className="flex flex-wrap items-end gap-3">
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-neutral-500">Weight (kg)</label>
+          <input
+            type="number"
+            min="0"
+            value={weightKg}
+            onChange={(e) => setWeightKg(e.target.value)}
+            placeholder="optional"
+            className="w-24 rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          />
+        </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-neutral-500">Priority</label>
           <select
