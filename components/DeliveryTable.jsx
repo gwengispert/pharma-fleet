@@ -3,6 +3,13 @@
 import { useState } from "react";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 
+function formatWindow(windowStart, windowEnd) {
+  if (windowStart && windowEnd) return `${windowStart}–${windowEnd}`;
+  if (windowStart) return `From ${windowStart}`;
+  if (windowEnd) return `By ${windowEnd}`;
+  return "—";
+}
+
 const STATUS_STYLES = {
   pending: "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300",
   assigned: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
@@ -38,7 +45,7 @@ export default function DeliveryTable({
             <th className="py-2 pr-3">Customer</th>
             <th className="py-2 pr-3">Address</th>
             <th className="py-2 pr-3">Weight</th>
-            <th className="py-2 pr-3">Priority</th>
+            <th className="py-2 pr-3">Window</th>
             <th className="py-2 pr-3">Status</th>
             <th className="py-2 pr-3">Vehicle / Driver</th>
             <th className="py-2 pr-3">Seq</th>
@@ -82,13 +89,7 @@ export default function DeliveryTable({
                 </td>
                 <td className="py-2 pr-3 text-neutral-500">{d.address}</td>
                 <td className="py-2 pr-3 text-neutral-500">{d.weightKg != null ? `${d.weightKg} kg` : "—"}</td>
-                <td className="py-2 pr-3">
-                  {d.priority === "urgent" ? (
-                    <span className="font-medium text-red-600">Urgent</span>
-                  ) : (
-                    "Normal"
-                  )}
-                </td>
+                <td className="py-2 pr-3 text-neutral-500">{formatWindow(d.windowStart, d.windowEnd)}</td>
                 <td className="py-2 pr-3">
                   <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLES[d.status] || ""}`}>
                     {d.status}
@@ -134,7 +135,8 @@ function DeliveryEditRow({ delivery, apiKey, vehiclesById = {}, driversById = {}
     delivery.lat != null ? { lat: delivery.lat, lng: delivery.lng } : null
   );
   const [weightKg, setWeightKg] = useState(delivery.weightKg ?? "");
-  const [priority, setPriority] = useState(delivery.priority);
+  const [windowStart, setWindowStart] = useState(delivery.windowStart || "");
+  const [windowEnd, setWindowEnd] = useState(delivery.windowEnd || "");
   const [requiresRefrigeration, setRequiresRefrigeration] = useState(delivery.requiresRefrigeration);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -158,7 +160,8 @@ function DeliveryEditRow({ delivery, apiKey, vehiclesById = {}, driversById = {}
         customerName: customerName.trim(),
         address: address.trim(),
         weightKg: weightKg === "" ? null : Number(weightKg),
-        priority,
+        windowStart: windowStart || null,
+        windowEnd: windowEnd || null,
         requiresRefrigeration,
       };
       if (coords) {
@@ -202,15 +205,20 @@ function DeliveryEditRow({ delivery, apiKey, vehiclesById = {}, driversById = {}
         />
       </td>
       <td className="py-2 pr-3">
-        <div className="flex items-center gap-2">
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-            className="rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
-          >
-            <option value="normal">Normal</option>
-            <option value="urgent">Urgent</option>
-          </select>
+        <div className="flex items-center gap-1">
+          <input
+            type="time"
+            value={windowStart}
+            onChange={(e) => setWindowStart(e.target.value)}
+            className="w-24 rounded-md border border-neutral-300 px-1 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          />
+          <span className="text-neutral-400">–</span>
+          <input
+            type="time"
+            value={windowEnd}
+            onChange={(e) => setWindowEnd(e.target.value)}
+            className="w-24 rounded-md border border-neutral-300 px-1 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          />
           <label className="flex items-center gap-1 text-xs text-neutral-500" title="Requires refrigeration">
             <input
               type="checkbox"

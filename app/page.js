@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { listDrivers } from "@/lib/store";
+import Logo from "@/components/Logo";
 
 export default async function HomePage() {
   const drivers = listDrivers();
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center gap-10 px-6 py-16">
-      <div className="text-center">
-        <h1 className="text-3xl font-semibold tracking-tight">Pharma Fleet</h1>
+      <div className="flex flex-col items-center text-center">
+        <Logo size="lg" withText={false} />
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight">Pharma Fleet</h1>
         <p className="mt-2 text-sm text-neutral-500">
           Delivery scheduling &amp; route optimization for pharmaceutical distribution
         </p>
@@ -16,7 +18,7 @@ export default async function HomePage() {
       <div className="grid w-full gap-6 sm:grid-cols-2">
         <Link
           href="/admin"
-          className="flex flex-col gap-2 rounded-xl border border-neutral-200 p-6 transition hover:border-neutral-400 hover:shadow-sm dark:border-neutral-800 dark:hover:border-neutral-600"
+          className="flex flex-col gap-2 rounded-xl border border-neutral-200 p-6 transition hover:border-teal-400 hover:shadow-sm dark:border-neutral-800 dark:hover:border-teal-700"
         >
           <span className="text-lg font-medium">Admin Dashboard</span>
           <span className="text-sm text-neutral-500">
@@ -36,7 +38,7 @@ export default async function HomePage() {
                 <Link
                   key={driver.id}
                   href={`/driver?driverId=${driver.id}`}
-                  className="rounded-lg border border-neutral-200 px-3 py-2 text-sm transition hover:border-neutral-400 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:border-neutral-600 dark:hover:bg-neutral-900"
+                  className="rounded-lg border border-neutral-200 px-3 py-2 text-sm transition hover:border-teal-400 hover:bg-teal-50 dark:border-neutral-800 dark:hover:border-teal-700 dark:hover:bg-neutral-900"
                 >
                   Driver: {driver.name}
                 </Link>

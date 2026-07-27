@@ -11,7 +11,7 @@ import DeliveryTable from "@/components/DeliveryTable";
 import RouteSummary from "@/components/RouteSummary";
 import MapView from "@/components/MapView";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
-import { assignDeliveriesToVehicles } from "@/lib/vehicleAssignment";
+import Logo from "@/components/Logo";
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const TABS = ["Settings", "Vehicles", "Drivers", "Deliveries", "Assign & Optimize", "Data"];
@@ -55,9 +55,12 @@ export default function AdminPage() {
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-6 py-10">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Admin Dashboard</h1>
-          <p className="text-sm text-neutral-500">Vehicles, drivers, deliveries, and route optimization</p>
+        <div className="flex flex-col gap-1">
+          <Logo size="sm" />
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Admin Dashboard</h1>
+            <p className="text-sm text-neutral-500">Vehicles, drivers, deliveries, and route optimization</p>
+          </div>
         </div>
         <Link href="/" className="text-sm text-neutral-500 hover:underline">
           ← Home
@@ -77,8 +80,8 @@ export default function AdminPage() {
             onClick={() => setTab(t)}
             className={`rounded-full px-3 py-1.5 text-sm ${
               tab === t
-                ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                : "text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-900"
+                ? "bg-teal-700 text-white dark:bg-teal-500 dark:text-teal-950"
+                : "text-neutral-500 hover:bg-teal-50 dark:hover:bg-neutral-900"
             }`}
           >
             {t}
@@ -188,7 +191,7 @@ export default function AdminPage() {
 
 function Section({ title, children }) {
   return (
-    <section className="flex flex-col gap-3 rounded-xl border border-neutral-200 p-5 dark:border-neutral-800">
+    <section className="flex flex-col gap-3 rounded-xl border border-neutral-200 border-t-2 border-t-teal-600 p-5 dark:border-neutral-800 dark:border-t-teal-600">
       <h2 className="font-medium">{title}</h2>
       {children}
     </section>
@@ -201,6 +204,7 @@ function SettingsPanel({ settings, onSaved }) {
     settings?.depotLat != null ? { lat: settings.depotLat, lng: settings.depotLng } : null
   );
   const [fuelCostPerKm, setFuelCostPerKm] = useState(settings?.fuelCostPerKm ?? 0.15);
+  const [dispatchDate, setDispatchDate] = useState(settings?.dispatchDate || "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -219,7 +223,11 @@ function SettingsPanel({ settings, onSaved }) {
     setSaving(true);
     setError(null);
     try {
-      const payload = { depotAddress, fuelCostPerKm: Number(fuelCostPerKm) };
+      const payload = {
+        depotAddress,
+        fuelCostPerKm: Number(fuelCostPerKm),
+        dispatchDate: dispatchDate || null,
+      };
       if (depotCoords) {
         payload.depotLat = depotCoords.lat;
         payload.depotLng = depotCoords.lng;
@@ -228,6 +236,7 @@ function SettingsPanel({ settings, onSaved }) {
       onSaved(updated);
       setDepotAddress(updated.depotAddress);
       setDepotCoords(updated.depotLat != null ? { lat: updated.depotLat, lng: updated.depotLng } : null);
+      setDispatchDate(updated.dispatchDate || "");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -266,11 +275,23 @@ function SettingsPanel({ settings, onSaved }) {
             className="w-32 rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
           />
         </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-neutral-500">Dispatch date</label>
+          <input
+            type="date"
+            value={dispatchDate}
+            onChange={(e) => setDispatchDate(e.target.value)}
+            className="w-40 rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          />
+          <span className="text-xs text-neutral-400">
+            The day every delivery&apos;s arrival window (earliest/latest arrival) is resolved against.
+          </span>
+        </div>
         <div>
           <button
             type="submit"
             disabled={saving}
-            className="rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
+            className="rounded-md bg-teal-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-teal-800 disabled:opacity-50 dark:bg-teal-500 dark:text-teal-950 dark:hover:bg-teal-400"
           >
             {saving ? "Saving…" : "Save settings"}
           </button>
@@ -598,21 +619,8 @@ function AssignOptimizePanel({
     setAutoAssignError(null);
     setAutoAssignResult(null);
     try {
-      const eligible = pendingDeliveries.filter((d) => d.lat != null && d.lng != null);
-      const { groups, unassigned } = assignDeliveriesToVehicles(eligible, vehicles);
-
-      for (const [vId, group] of groups) {
-        await api.post("/api/routes/optimize", {
-          vehicleId: vId,
-          deliveryIds: group.map((d) => d.id),
-        });
-      }
-
-      setAutoAssignResult({
-        vehicleCount: groups.size,
-        deliveryCount: eligible.length - unassigned.length,
-        unassigned,
-      });
+      const result = await api.post("/api/routes/optimize-fleet", {});
+      setAutoAssignResult(result);
       await onOptimized();
     } catch (err) {
       setAutoAssignError(err.message);
@@ -644,18 +652,23 @@ function AssignOptimizePanel({
     <div className="flex flex-col gap-4">
       <Section title="Auto-assign by weight">
         <p className="text-sm text-neutral-500">
-          Assigns every pending delivery to a vehicle that can carry its weight (matching
-          refrigeration needs to refrigerated vehicles), then computes each vehicle&apos;s
-          shortest route with Google&apos;s route optimization.
+          Solves the whole fleet at once with Google&apos;s Route Optimization API: which vehicle
+          takes which deliveries (respecting weight capacity, refrigeration, and each
+          delivery&apos;s arrival window) and each vehicle&apos;s shortest stop order, jointly.
         </p>
         <div>
           <button
             onClick={handleAutoAssign}
-            disabled={autoAssigning || pendingDeliveries.length === 0}
-            className="rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
+            disabled={autoAssigning || pendingDeliveries.length === 0 || !settings?.dispatchDate}
+            className="rounded-md bg-teal-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-teal-800 disabled:opacity-50 dark:bg-teal-500 dark:text-teal-950 dark:hover:bg-teal-400"
           >
             {autoAssigning ? "Assigning…" : "Auto-assign & optimize routes"}
           </button>
+          {!settings?.dispatchDate && (
+            <span className="ml-3 text-sm text-neutral-500">
+              Set the dispatch date under Settings first.
+            </span>
+          )}
           {autoAssignError && <span className="ml-3 text-sm text-red-600">{autoAssignError}</span>}
         </div>
         {autoAssignResult && (
@@ -664,13 +677,13 @@ function AssignOptimizePanel({
               Assigned {autoAssignResult.deliveryCount} deliveries across {autoAssignResult.vehicleCount}{" "}
               vehicle{autoAssignResult.vehicleCount === 1 ? "" : "s"}.
             </p>
-            {autoAssignResult.unassigned.length > 0 && (
+            {autoAssignResult.skippedDeliveryIds.length > 0 && (
               <p className="text-amber-600">
-                Couldn&apos;t fit: {autoAssignResult.unassigned.map((d) => d.customerName).join(", ")} — no
-                vehicle had enough remaining capacity{" "}
-                {autoAssignResult.unassigned.some((d) => d.requiresRefrigeration) &&
-                  "(or lacked refrigeration)"}
-                .
+                Couldn&apos;t fit:{" "}
+                {autoAssignResult.skippedDeliveryIds
+                  .map((id) => deliveriesById[id]?.customerName || id)
+                  .join(", ")}{" "}
+                — no vehicle could fit it (capacity, refrigeration, or its arrival window).
               </p>
             )}
           </div>
@@ -714,7 +727,7 @@ function AssignOptimizePanel({
           <button
             onClick={handleOptimize}
             disabled={optimizing || selectedIds.size === 0}
-            className="rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
+            className="rounded-md bg-teal-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-teal-800 disabled:opacity-50 dark:bg-teal-500 dark:text-teal-950 dark:hover:bg-teal-400"
           >
             {optimizing ? "Optimizing…" : `Optimize route (${selectedIds.size} selected)`}
           </button>

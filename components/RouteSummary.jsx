@@ -20,7 +20,7 @@ export default function RouteSummary({ route, deliveriesById = {} }) {
           if (!delivery) return null;
           return (
             <li key={id} className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-xs text-white dark:bg-white dark:text-neutral-900">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-xs text-white dark:bg-teal-500 dark:text-teal-950">
                 {i + 1}
               </span>
               <span className="font-medium">{delivery.customerName}</span>

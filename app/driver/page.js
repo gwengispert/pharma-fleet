@@ -6,6 +6,7 @@ import Link from "next/link";
 import { api } from "@/lib/apiClient";
 import { decodePolyline } from "@/lib/polyline";
 import MapView from "@/components/MapView";
+import Logo from "@/components/Logo";
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const POLL_MS = 5000;
@@ -108,11 +109,14 @@ function DriverView() {
   return (
     <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 py-10">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Hi, {driver.name}</h1>
-          <p className="text-sm text-neutral-500">
-            {vehicleId ? "Your assigned route for today" : "No vehicle assigned yet"}
-          </p>
+        <div className="flex flex-col gap-1">
+          <Logo size="sm" />
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Hi, {driver.name}</h1>
+            <p className="text-sm text-neutral-500">
+              {vehicleId ? "Your assigned route for today" : "No vehicle assigned yet"}
+            </p>
+          </div>
         </div>
         <Link href="/" className="text-sm text-neutral-500 hover:underline">
           ← Home
@@ -131,7 +135,7 @@ function DriverView() {
         </p>
       ) : (
         <>
-          <section className="flex flex-col gap-3 rounded-xl border border-neutral-200 p-5 dark:border-neutral-800">
+          <section className="flex flex-col gap-3 rounded-xl border border-neutral-200 border-t-2 border-t-teal-600 p-5 dark:border-neutral-800 dark:border-t-teal-600">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex gap-6 text-sm">
                 <Stat label="Stops" value={stops.length} />
@@ -144,7 +148,7 @@ function DriverView() {
                   setSimulating(true);
                 }}
                 disabled={simulating}
-                className="rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
+                className="rounded-md bg-teal-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-teal-800 disabled:opacity-50 dark:bg-teal-500 dark:text-teal-950 dark:hover:bg-teal-400"
               >
                 {simulating ? `Driving… ${Math.round(progress * 100)}%` : "Start simulation"}
               </button>
@@ -176,7 +180,7 @@ function DriverView() {
                   <div className="flex items-center gap-3">
                     <span
                       className={`flex h-6 w-6 items-center justify-center rounded-full text-xs text-white ${
-                        stop.status === "delivered" ? "bg-green-600" : "bg-neutral-900 dark:bg-white dark:text-neutral-900"
+                        stop.status === "delivered" ? "bg-green-600" : "bg-teal-700 dark:bg-teal-500 dark:text-teal-950"
                       }`}
                     >
                       {i + 1}
@@ -185,9 +189,17 @@ function DriverView() {
                       <span className="font-medium">
                         {stop.customerName}
                         {stop.requiresRefrigeration && <span className="ml-1 text-sky-600">❄</span>}
-                        {stop.priority === "urgent" && <span className="ml-1 text-red-600">urgent</span>}
                       </span>
                       <span className="text-sm text-neutral-500">{stop.address}</span>
+                      {(stop.windowStart || stop.windowEnd) && (
+                        <span className="text-xs text-amber-600">
+                          {stop.windowStart && stop.windowEnd
+                            ? `Arrive ${stop.windowStart}–${stop.windowEnd}`
+                            : stop.windowStart
+                              ? `Arrive after ${stop.windowStart}`
+                              : `Arrive by ${stop.windowEnd}`}
+                        </span>
+                      )}
                     </div>
                   </div>
                   {stop.status === "delivered" ? (
@@ -195,7 +207,7 @@ function DriverView() {
                   ) : stop.id === nextStopId ? (
                     <button
                       onClick={() => markDelivered(stop.id)}
-                      className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white dark:bg-white dark:text-neutral-900"
+                      className="rounded-md bg-teal-700 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-teal-800 dark:bg-teal-500 dark:text-teal-950 dark:hover:bg-teal-400"
                     >
                       Mark delivered
                     </button>

@@ -64,7 +64,7 @@ export default function DriverForm({ vehicles, onCreate }) {
       <button
         type="submit"
         disabled={submitting || !name.trim()}
-        className="rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
+        className="rounded-md bg-teal-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-teal-800 disabled:opacity-50 dark:bg-teal-500 dark:text-teal-950 dark:hover:bg-teal-400"
       >
         {submitting ? "Adding…" : "Add driver"}
       </button>
