@@ -223,10 +223,6 @@ export default function AdminPage() {
                   await api.del(`/api/deliveries/${id}`);
                   await loadAll();
                 }}
-                onReset={async (id) => {
-                  await api.post(`/api/deliveries/${id}/reset`);
-                  await loadAll();
-                }}
               />
             </section>
           )}
