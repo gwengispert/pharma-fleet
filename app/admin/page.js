@@ -4,7 +4,22 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/apiClient";
 import { decodePolyline } from "@/lib/polyline";
-import VehicleForm, { VEHICLE_TYPES } from "@/components/VehicleForm";
+import VehicleForm from "@/components/VehicleForm";
+import { VEHICLE_TYPES } from "@/lib/constants";
+import FieldLabel from "@/components/FieldLabel";
+import {
+  MapPinIcon,
+  DollarIcon,
+  CalendarIcon,
+  SettingsIcon,
+  TruckIcon,
+  UserIcon,
+  BoxIcon,
+  RouteIcon,
+  DatabaseIcon,
+  UploadIcon,
+  UndoIcon,
+} from "@/components/icons";
 import DriverForm from "@/components/DriverForm";
 import DeliveryForm from "@/components/DeliveryForm";
 import DeliveryTable from "@/components/DeliveryTable";
@@ -15,6 +30,14 @@ import Logo from "@/components/Logo";
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const TABS = ["Settings", "Vehicles", "Drivers", "Deliveries", "Assign & Optimize", "Data"];
+const TAB_ICONS = {
+  Settings: SettingsIcon,
+  Vehicles: TruckIcon,
+  Drivers: UserIcon,
+  Deliveries: BoxIcon,
+  "Assign & Optimize": RouteIcon,
+  Data: DatabaseIcon,
+};
 
 export default function AdminPage() {
   const [tab, setTab] = useState(TABS[0]);
@@ -74,19 +97,23 @@ export default function AdminPage() {
       )}
 
       <nav className="flex flex-wrap gap-2 border-b border-neutral-200 pb-2 dark:border-neutral-800">
-        {TABS.map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`rounded-full px-3 py-1.5 text-sm ${
-              tab === t
-                ? "bg-teal-700 text-white dark:bg-teal-500 dark:text-teal-950"
-                : "text-neutral-500 hover:bg-teal-50 dark:hover:bg-neutral-900"
-            }`}
-          >
-            {t}
-          </button>
-        ))}
+        {TABS.map((t) => {
+          const Icon = TAB_ICONS[t];
+          return (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm ${
+                tab === t
+                  ? "bg-teal-700 text-white dark:bg-teal-500 dark:text-teal-950"
+                  : "text-neutral-500 hover:bg-teal-50 dark:hover:bg-neutral-900"
+              }`}
+            >
+              <Icon className="h-4 w-4 flex-none" />
+              {t}
+            </button>
+          );
+        })}
       </nav>
 
       {loading ? (
@@ -99,12 +126,22 @@ export default function AdminPage() {
 
           {tab === "Vehicles" && (
             <section className="flex flex-col gap-4">
-              <VehicleForm
-                onCreate={async (data) => {
-                  const vehicle = await api.post("/api/vehicles", data);
-                  setVehicles((v) => [...v, vehicle]);
-                }}
-              />
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <VehicleForm
+                  onCreate={async (data) => {
+                    const vehicle = await api.post("/api/vehicles", data);
+                    setVehicles((v) => [...v, vehicle]);
+                  }}
+                />
+                <CsvImportToggle
+                  description="Download a template, fill it in, and upload it back to create many vehicles at once."
+                  templateFilename="vehicles-template.csv"
+                  templateContent={VEHICLE_CSV_TEMPLATE}
+                  endpoint="/api/vehicles/import"
+                  resultNoun="vehicles"
+                  onImported={loadAll}
+                />
+              </div>
               <VehicleTable
                 vehicles={vehicles}
                 onUpdate={async (id, patch) => {
@@ -121,13 +158,23 @@ export default function AdminPage() {
 
           {tab === "Drivers" && (
             <section className="flex flex-col gap-4">
-              <DriverForm
-                vehicles={vehicles.filter((v) => !drivers.some((d) => d.vehicleId === v.id))}
-                onCreate={async (data) => {
-                  const driver = await api.post("/api/drivers", data);
-                  setDrivers((d) => [...d, driver]);
-                }}
-              />
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <DriverForm
+                  vehicles={vehicles.filter((v) => !drivers.some((d) => d.vehicleId === v.id))}
+                  onCreate={async (data) => {
+                    const driver = await api.post("/api/drivers", data);
+                    setDrivers((d) => [...d, driver]);
+                  }}
+                />
+                <CsvImportToggle
+                  description="Download a template, fill it in, and upload it back to create many drivers at once. The vehicleName column is matched against existing vehicle names."
+                  templateFilename="drivers-template.csv"
+                  templateContent={DRIVER_CSV_TEMPLATE}
+                  endpoint="/api/drivers/import"
+                  resultNoun="drivers"
+                  onImported={loadAll}
+                />
+              </div>
               <DriverTable
                 drivers={drivers}
                 vehicles={vehicles}
@@ -146,13 +193,23 @@ export default function AdminPage() {
 
           {tab === "Deliveries" && (
             <section className="flex flex-col gap-4">
-              <DeliveryForm
-                apiKey={GOOGLE_MAPS_API_KEY}
-                onCreate={async (data) => {
-                  const delivery = await api.post("/api/deliveries", data);
-                  setDeliveries((d) => [...d, delivery]);
-                }}
-              />
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <DeliveryForm
+                  apiKey={GOOGLE_MAPS_API_KEY}
+                  onCreate={async (data) => {
+                    const delivery = await api.post("/api/deliveries", data);
+                    setDeliveries((d) => [...d, delivery]);
+                  }}
+                />
+                <CsvImportToggle
+                  description="Download a template, fill it in, and upload it back to create many deliveries at once. Addresses are geocoded automatically."
+                  templateFilename="deliveries-template.csv"
+                  templateContent={DELIVERY_CSV_TEMPLATE}
+                  endpoint="/api/deliveries/import"
+                  resultNoun="deliveries"
+                  onImported={loadAll}
+                />
+              </div>
               <DeliveryTable
                 deliveries={deliveries}
                 vehiclesById={vehiclesById}
@@ -164,6 +221,10 @@ export default function AdminPage() {
                 }}
                 onDelete={async (id) => {
                   await api.del(`/api/deliveries/${id}`);
+                  await loadAll();
+                }}
+                onReset={async (id) => {
+                  await api.post(`/api/deliveries/${id}/reset`);
                   await loadAll();
                 }}
               />
@@ -248,7 +309,7 @@ function SettingsPanel({ settings, onSaved }) {
     <Section title="Depot & cost settings">
       <form onSubmit={handleSave} className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-neutral-500">Depot / warehouse address</label>
+          <FieldLabel icon={MapPinIcon}>Depot / warehouse address</FieldLabel>
           <AddressAutocomplete
             apiKey={GOOGLE_MAPS_API_KEY}
             value={depotAddress}
@@ -266,7 +327,7 @@ function SettingsPanel({ settings, onSaved }) {
           )}
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-neutral-500">Fuel cost per km ($)</label>
+          <FieldLabel icon={DollarIcon}>Fuel cost per km ($)</FieldLabel>
           <input
             type="number"
             step="0.01"
@@ -276,7 +337,7 @@ function SettingsPanel({ settings, onSaved }) {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-neutral-500">Dispatch date</label>
+          <FieldLabel icon={CalendarIcon}>Dispatch date</FieldLabel>
           <input
             type="date"
             value={dispatchDate}
@@ -583,6 +644,8 @@ function AssignOptimizePanel({
   const [autoAssigning, setAutoAssigning] = useState(false);
   const [autoAssignError, setAutoAssignError] = useState(null);
   const [autoAssignResult, setAutoAssignResult] = useState(null);
+  const [resetting, setResetting] = useState(false);
+  const [resetError, setResetError] = useState(null);
 
   // Reset the selection when the vehicle changes, without an effect
   // (see: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes).
@@ -629,6 +692,21 @@ function AssignOptimizePanel({
     }
   }
 
+  async function handleResetAll() {
+    if (!window.confirm("Unassign every delivery and clear all vehicle routes?")) return;
+    setResetting(true);
+    setResetError(null);
+    try {
+      await api.post("/api/deliveries/reset-all");
+      setAutoAssignResult(null);
+      await onOptimized();
+    } catch (err) {
+      setResetError(err.message);
+    } finally {
+      setResetting(false);
+    }
+  }
+
   if (vehicles.length === 0) {
     return <p className="text-sm text-neutral-500">Add a vehicle first.</p>;
   }
@@ -647,6 +725,7 @@ function AssignOptimizePanel({
         .map((d) => ({ ...d }))
     : [];
   const path = route ? decodePolyline(route.polyline) : [];
+  const assignedCount = deliveries.filter((d) => d.status !== "pending").length;
 
   return (
     <div className="flex flex-col gap-4">
@@ -669,7 +748,16 @@ function AssignOptimizePanel({
               Set the dispatch date under Settings first.
             </span>
           )}
+          <button
+            onClick={handleResetAll}
+            disabled={resetting || assignedCount === 0}
+            className="ml-2 inline-flex items-center gap-1.5 rounded-md border border-neutral-300 px-4 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+          >
+            <UndoIcon className="h-4 w-4" />
+            {resetting ? "Resetting…" : "Reset all assignments"}
+          </button>
           {autoAssignError && <span className="ml-3 text-sm text-red-600">{autoAssignError}</span>}
+          {resetError && <span className="ml-3 text-sm text-red-600">{resetError}</span>}
         </div>
         {autoAssignResult && (
           <div className="text-sm text-neutral-600 dark:text-neutral-300">
@@ -747,6 +835,134 @@ function AssignOptimizePanel({
             />
           </div>
         </Section>
+      )}
+    </div>
+  );
+}
+
+const VEHICLE_CSV_TEMPLATE = `name,type,capacityKg,refrigerated
+Van 01 - ABC123,van,500,false
+Reefer Truck 01,refrigerated truck,1200,true
+`;
+
+const DRIVER_CSV_TEMPLATE = `name,phone,vehicleName
+Jane Doe,+63 900 000 0000,Van 01 - ABC123
+`;
+
+const DELIVERY_CSV_TEMPLATE = `customerName,address,weightKg,windowStart,windowEnd,requiresRefrigeration,notes
+Riverside Pharmacy,"123 Rizal Ave, Makati City, Metro Manila",25,09:00,11:00,false,Leave at guard house
+`;
+
+function downloadTextFile(filename, content) {
+  const blob = new Blob([content], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function CsvImportBlock({ templateFilename, templateContent, endpoint, resultNoun, onImported }) {
+  const fileInputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+
+  async function handleUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError(null);
+    setResult(null);
+    try {
+      const csv = await file.text();
+      const res = await api.post(endpoint, { csv });
+      setResult(res);
+      await onImported();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => downloadTextFile(templateFilename, templateContent)}
+          className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+        >
+          Download template
+        </button>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+        >
+          {uploading ? "Uploading…" : "Upload CSV"}
+        </button>
+        <input ref={fileInputRef} type="file" accept=".csv,text/csv" hidden onChange={handleUpload} />
+      </div>
+      {result && (
+        <div className="text-xs">
+          <p className="text-green-600">
+            Created {result.created} {resultNoun}.
+          </p>
+          {result.errors?.length > 0 && (
+            <ul className="mt-1 list-inside list-disc text-amber-600">
+              {result.errors.map((e, i) => (
+                <li key={i}>
+                  Row {e.row}: {e.message}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+      {error && <p className="text-xs text-red-600">{error}</p>}
+    </div>
+  );
+}
+
+function CsvImportToggle({ description, templateFilename, templateContent, endpoint, resultNoun, onImported }) {
+  const [open, setOpen] = useState(false);
+  const panelRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClickOutside(e) {
+      if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  return (
+    <div ref={panelRef} className="relative flex-none">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1.5 rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+      >
+        <UploadIcon className="h-3.5 w-3.5" />
+        Bulk import CSV
+      </button>
+      {open && (
+        <div className="absolute right-0 z-10 mt-2 w-72 rounded-lg border border-neutral-200 bg-white p-3 shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+          <p className="mb-2 text-xs text-neutral-500">{description}</p>
+          <CsvImportBlock
+            templateFilename={templateFilename}
+            templateContent={templateContent}
+            endpoint={endpoint}
+            resultNoun={resultNoun}
+            onImported={onImported}
+          />
+        </div>
       )}
     </div>
   );

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-
-export const VEHICLE_TYPES = ["van", "truck", "refrigerated truck", "motorcycle"];
+import { VEHICLE_TYPES } from "@/lib/constants";
+import FieldLabel from "@/components/FieldLabel";
+import { TruckIcon, TagIcon, WeightIcon, SnowflakeIcon } from "@/components/icons";
 
 export default function VehicleForm({ onCreate }) {
   const [name, setName] = useState("");
@@ -37,7 +38,7 @@ export default function VehicleForm({ onCreate }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3">
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-neutral-500">Name / plate</label>
+        <FieldLabel icon={TruckIcon}>Name / plate</FieldLabel>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -46,7 +47,7 @@ export default function VehicleForm({ onCreate }) {
         />
       </div>
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-neutral-500">Type</label>
+        <FieldLabel icon={TagIcon}>Type</FieldLabel>
         <select
           value={type}
           onChange={(e) => setType(e.target.value)}
@@ -60,7 +61,7 @@ export default function VehicleForm({ onCreate }) {
         </select>
       </div>
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-neutral-500">Capacity (kg)</label>
+        <FieldLabel icon={WeightIcon}>Capacity (kg)</FieldLabel>
         <input
           type="number"
           value={capacityKg}
@@ -69,12 +70,13 @@ export default function VehicleForm({ onCreate }) {
           className="w-24 rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
         />
       </div>
-      <label className="flex items-center gap-2 pb-1.5 text-sm">
+      <label className="flex items-center gap-1.5 pb-1.5 text-sm">
         <input
           type="checkbox"
           checked={refrigerated}
           onChange={(e) => setRefrigerated(e.target.checked)}
         />
+        <SnowflakeIcon className="h-3.5 w-3.5 text-sky-600" />
         Refrigerated
       </label>
       <button

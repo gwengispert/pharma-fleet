@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import FieldLabel from "@/components/FieldLabel";
+import { UserIcon, PhoneIcon, TruckIcon } from "@/components/icons";
 
 export default function DriverForm({ vehicles, onCreate }) {
   const [name, setName] = useState("");
@@ -29,7 +31,7 @@ export default function DriverForm({ vehicles, onCreate }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3">
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-neutral-500">Name</label>
+        <FieldLabel icon={UserIcon}>Name</FieldLabel>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -38,7 +40,7 @@ export default function DriverForm({ vehicles, onCreate }) {
         />
       </div>
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-neutral-500">Phone</label>
+        <FieldLabel icon={PhoneIcon}>Phone</FieldLabel>
         <input
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
@@ -47,7 +49,7 @@ export default function DriverForm({ vehicles, onCreate }) {
         />
       </div>
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-neutral-500">Assigned vehicle</label>
+        <FieldLabel icon={TruckIcon}>Assigned vehicle</FieldLabel>
         <select
           value={vehicleId}
           onChange={(e) => setVehicleId(e.target.value)}

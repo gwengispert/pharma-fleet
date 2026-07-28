@@ -67,7 +67,23 @@ function DriverView() {
       .filter(Boolean);
   }, [route, deliveries]);
 
-  const path = useMemo(() => (route ? decodePolyline(route.polyline) : []), [route]);
+  // Memoized so MapView's `center` prop (and the underlying <GoogleMap>) sees
+  // a stable reference across renders — an inline object literal here was
+  // recreated every render (including every animation frame during the
+  // driving simulation), and @react-google-maps/api resyncs the real map's
+  // center to match a changed `center` prop, which was fighting the
+  // simulation's own per-frame `setCenter` follow-camera calls in MapView.
+  const depot = useMemo(
+    () => (settings?.depotLat != null ? { lat: settings.depotLat, lng: settings.depotLng } : null),
+    [settings]
+  );
+
+  // Depend on the polyline string itself, not the `route` object — `routes`
+  // gets a brand-new object from every 5s poll even when nothing changed,
+  // which would otherwise recompute `path` (a new array reference) and
+  // restart MapView's simulation effect mid-animation on every poll tick.
+  const routePolyline = route?.polyline;
+  const path = useMemo(() => (routePolyline ? decodePolyline(routePolyline) : []), [routePolyline]);
   const nextStopId = stops.find((s) => s.status !== "delivered")?.id;
 
   async function markDelivered(deliveryId) {
@@ -156,11 +172,12 @@ function DriverView() {
             <div className="h-80 w-full overflow-hidden rounded-lg">
               <MapView
                 apiKey={GOOGLE_MAPS_API_KEY}
-                depot={settings?.depotLat != null ? { lat: settings.depotLat, lng: settings.depotLng } : null}
+                depot={depot}
                 stops={stops}
                 path={path}
                 simulating={simulating}
                 durationMs={20000}
+                driverMode
                 onProgress={(f) => {
                   setProgress(f);
                   if (f >= 1) setSimulating(false);

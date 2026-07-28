@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
+import FieldLabel from "@/components/FieldLabel";
+import { UserIcon, MapPinIcon, WeightIcon, ClockIcon, SnowflakeIcon, NoteIcon } from "@/components/icons";
 
 export default function DeliveryForm({ apiKey, onCreate }) {
   const [customerName, setCustomerName] = useState("");
@@ -64,7 +66,7 @@ export default function DeliveryForm({ apiKey, onCreate }) {
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <div className="flex flex-wrap gap-3">
         <div className="flex flex-1 min-w-[180px] flex-col gap-1">
-          <label className="text-xs text-neutral-500">Customer / pharmacy</label>
+          <FieldLabel icon={UserIcon}>Customer / pharmacy</FieldLabel>
           <input
             value={customerName}
             onChange={(e) => setCustomerName(e.target.value)}
@@ -73,7 +75,7 @@ export default function DeliveryForm({ apiKey, onCreate }) {
           />
         </div>
         <div className="flex flex-[2] min-w-[280px] flex-col gap-1">
-          <label className="text-xs text-neutral-500">Address</label>
+          <FieldLabel icon={MapPinIcon}>Address</FieldLabel>
           <AddressAutocomplete
             apiKey={apiKey}
             value={address}
@@ -88,7 +90,7 @@ export default function DeliveryForm({ apiKey, onCreate }) {
       </div>
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-neutral-500">Weight (kg)</label>
+          <FieldLabel icon={WeightIcon}>Weight (kg)</FieldLabel>
           <input
             type="number"
             min="0"
@@ -99,7 +101,7 @@ export default function DeliveryForm({ apiKey, onCreate }) {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-neutral-500">Earliest arrival</label>
+          <FieldLabel icon={ClockIcon}>Earliest arrival</FieldLabel>
           <input
             type="time"
             value={windowStart}
@@ -108,7 +110,7 @@ export default function DeliveryForm({ apiKey, onCreate }) {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-neutral-500">Latest arrival</label>
+          <FieldLabel icon={ClockIcon}>Latest arrival</FieldLabel>
           <input
             type="time"
             value={windowEnd}
@@ -116,16 +118,17 @@ export default function DeliveryForm({ apiKey, onCreate }) {
             className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
           />
         </div>
-        <label className="flex items-center gap-2 pb-1.5 text-sm">
+        <label className="flex items-center gap-1.5 pb-1.5 text-sm">
           <input
             type="checkbox"
             checked={requiresRefrigeration}
             onChange={(e) => setRequiresRefrigeration(e.target.checked)}
           />
+          <SnowflakeIcon className="h-3.5 w-3.5 text-sky-600" />
           Requires refrigeration
         </label>
         <div className="flex flex-1 min-w-[180px] flex-col gap-1">
-          <label className="text-xs text-neutral-500">Notes</label>
+          <FieldLabel icon={NoteIcon}>Notes</FieldLabel>
           <input
             value={notes}
             onChange={(e) => setNotes(e.target.value)}

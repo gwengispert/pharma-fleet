@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
+import { UndoIcon } from "@/components/icons";
 
 function formatWindow(windowStart, windowEnd) {
   if (windowStart && windowEnd) return `${windowStart}–${windowEnd}`;
@@ -27,6 +28,7 @@ export default function DeliveryTable({
   apiKey,
   onUpdate,
   onDelete,
+  onReset,
 }) {
   const [editingId, setEditingId] = useState(null);
 
@@ -34,7 +36,7 @@ export default function DeliveryTable({
     return <p className="text-sm text-neutral-500">No deliveries yet.</p>;
   }
 
-  const showActions = Boolean(onUpdate || onDelete);
+  const showActions = Boolean(onUpdate || onDelete || onReset);
 
   return (
     <div className="overflow-x-auto">
@@ -104,6 +106,16 @@ export default function DeliveryTable({
                 <td className="py-2 pr-3">{d.sequence ?? "—"}</td>
                 {showActions && (
                   <td className="py-2 text-right whitespace-nowrap">
+                    {onReset && d.status !== "pending" && (
+                      <button
+                        onClick={() => onReset(d.id)}
+                        title="Unassign — back to pending"
+                        className="mr-3 inline-flex items-center gap-1 text-xs text-neutral-400 hover:text-amber-600"
+                      >
+                        <UndoIcon className="h-3.5 w-3.5" />
+                        reset
+                      </button>
+                    )}
                     {onUpdate && (
                       <button
                         onClick={() => setEditingId(d.id)}
