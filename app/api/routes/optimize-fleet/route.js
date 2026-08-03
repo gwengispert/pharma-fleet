@@ -9,6 +9,7 @@ import {
   clearRoute,
 } from "@/lib/store";
 import { optimizeFleetRoutes } from "@/lib/googleRouteOptimization.server";
+import { syncDeliveryVehicle, syncTask } from "@/lib/fleetEngine.server";
 
 // Re-plans the whole fleet in one solve: every vehicle, every delivery that's
 // not yet in-transit or delivered. Deliveries the solver can't fit anywhere
@@ -70,6 +71,9 @@ export async function POST() {
   const routedVehicleIds = new Set(result.routes.map((r) => r.vehicleId));
   vehicles.filter((v) => !routedVehicleIds.has(v.id)).forEach((v) => clearRoute(v.id));
 
+  const deliveriesById = Object.fromEntries(listDeliveries().map((d) => [d.id, d]));
+  const fleetEngineWarnings = [];
+
   for (const route of result.routes) {
     const driver = drivers.find((d) => d.vehicleId === route.vehicleId) || null;
     const estimatedCost = Math.round(distanceKm(route.totalDistanceMeters) * settings.fuelCostPerKm * 100) / 100;
@@ -95,6 +99,18 @@ export async function POST() {
         status: "assigned",
       });
     });
+
+    // Best-effort sync into Fleet Engine (the Driver SDK's backend) — a
+    // failure here must never break the route-optimization response that
+    // the admin dashboard and driver view already depend on.
+    try {
+      for (const deliveryId of route.deliveryIds) {
+        await syncTask(deliveriesById[deliveryId]);
+      }
+      await syncDeliveryVehicle({ vehicleId: route.vehicleId, deliveryIds: route.deliveryIds, deliveriesById });
+    } catch (err) {
+      fleetEngineWarnings.push(err.message);
+    }
   }
 
   // Every eligible delivery either landed in a route above or was skipped —
@@ -115,5 +131,6 @@ export async function POST() {
     vehicleCount: result.routes.length,
     deliveryCount: assignedIds.size,
     skippedDeliveryIds: result.skippedDeliveryIds,
+    ...(fleetEngineWarnings.length > 0 ? { fleetEngineWarnings } : {}),
   });
 }

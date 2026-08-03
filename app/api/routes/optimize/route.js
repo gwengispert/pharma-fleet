@@ -8,6 +8,7 @@ import {
   setRoute,
 } from "@/lib/store";
 import { optimizeRoute } from "@/lib/googleMaps.server";
+import { syncDeliveryVehicle, syncTask } from "@/lib/fleetEngine.server";
 
 export async function POST(request) {
   const { vehicleId, deliveryIds } = await request.json();
@@ -99,5 +100,18 @@ export async function POST(request) {
     });
   });
 
-  return NextResponse.json(route);
+  // Best-effort sync into Fleet Engine — never break this already-working
+  // response if the sync itself fails.
+  let fleetEngineWarning = null;
+  try {
+    const deliveriesById = Object.fromEntries(listDeliveries().map((d) => [d.id, d]));
+    for (const deliveryId of orderedDeliveryIds) {
+      await syncTask(deliveriesById[deliveryId]);
+    }
+    await syncDeliveryVehicle({ vehicleId, deliveryIds: orderedDeliveryIds, deliveriesById });
+  } catch (err) {
+    fleetEngineWarning = err.message;
+  }
+
+  return NextResponse.json({ ...route, ...(fleetEngineWarning ? { fleetEngineWarning } : {}) });
 }
