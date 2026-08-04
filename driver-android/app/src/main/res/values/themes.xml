@@ -1,0 +1,6 @@
+<resources>
+    <!-- No launcher icon is declared in AndroidManifest.xml yet — Android
+         Studio will fall back to a default. Run Image Asset (right-click
+         res/ > New > Image Asset) to generate a real one before shipping. -->
+    <style name="Theme.PharmaFleetDriver" parent="Theme.Material3.DayNight.NoActionBar" />
+</resources>

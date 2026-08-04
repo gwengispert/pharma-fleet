@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Apps targeting API 28+ block cleartext (plain HTTP) traffic by default —
+  our debug BACKEND_BASE_URL (http://10.0.2.2:3000, the emulator's alias for
+  the host machine's `npm run dev`) is exactly that, so every ApiClient call
+  would otherwise fail before ever reaching the network. Scoped to just
+  10.0.2.2 (meaningless outside an emulator) rather than a blanket
+  usesCleartextTraffic — the release build's Cloud Run URL stays HTTPS-only.
+
+  Testing on a physical device with a LAN IP instead? Add a second
+  <domain includeSubdomains="false">your-lan-ip</domain> entry here, or
+  switch to HTTPS for local dev (e.g. via a reverse proxy) if you'd rather
+  not special-case it.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>
