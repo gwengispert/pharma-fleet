@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The web app's "Delivered" pill (green-100 bg / green-700 text in light,
+     green-900/40 bg / green-300 text in dark — see values-night/colors.xml). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/success_pill_bg" />
+    <corners android:radius="999dp" />
+</shape>

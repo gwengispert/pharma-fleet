@@ -1,11 +1,15 @@
 package com.pharmafleet.driver
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.Gravity
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
@@ -16,6 +20,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.switchmaterial.SwitchMaterial
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -59,7 +64,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        locationReporter = DriverLocationReporter(application)
+        locationReporter = DriverLocationReporter(this)
 
         driverSpinner = findViewById(R.id.driverSpinner)
         onlineSwitch = findViewById(R.id.onlineSwitch)
@@ -240,24 +245,179 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun dp(value: Int): Int =
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value.toFloat(), resources.displayMetrics).toInt()
+
+    // Mirrors app/driver/page.js's checklist rows: numbered circle (green
+    // once delivered), name + address, and a right-aligned status — a
+    // "Delivered" pill, a "Mark delivered" button for the next stop, or
+    // muted "Waiting" text for the rest. Below that, "Open map" launches an
+    // in-app map screen (MapActivity) and "Street View" hands off to the
+    // Google Maps app — no turn-by-turn UI is built here either way (out of
+    // scope — see driver-android/README.md).
     private fun renderStops(stops: List<Delivery>) {
         stopsContainer.removeAllViews()
         val nextStopId = stops.firstOrNull { it.status != "delivered" }?.id
+
         stops.forEachIndexed { index, stop ->
-            val row = TextView(this).apply {
+            val delivered = stop.status == "delivered"
+            val isNext = stop.id == nextStopId
+
+            val card = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_stop_row)
+                setPadding(dp(12), dp(12), dp(12), dp(12))
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                ).apply { bottomMargin = dp(8) }
+            }
+
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
-                setPadding(0, 24, 0, 24)
-                val label = "${index + 1}. ${stop.customerName} — ${stop.address}"
-                text = when {
-                    stop.status == "delivered" -> "$label  ✓ Delivered"
-                    stop.id == nextStopId -> "$label  [tap to mark delivered]"
-                    else -> "$label  (waiting)"
-                }
-                if (stop.id == nextStopId) {
-                    setOnClickListener { markDelivered(stop.id) }
+            }
+
+            val indexBadge = FrameLayout(this).apply {
+                background = ContextCompat.getDrawable(
+                    this@MainActivity,
+                    if (delivered) R.drawable.bg_stop_index_delivered else R.drawable.bg_stop_index_pending,
+                )
+                layoutParams = LinearLayout.LayoutParams(dp(24), dp(24))
+            }
+            indexBadge.addView(
+                TextView(this).apply {
+                    text = (index + 1).toString()
+                    textSize = 11f
+                    setTextColor(ContextCompat.getColor(this@MainActivity, R.color.on_brand))
+                    gravity = Gravity.CENTER
+                    layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+                },
+            )
+
+            val textColumn = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    marginStart = dp(12)
+                    marginEnd = dp(8)
                 }
             }
-            stopsContainer.addView(row)
+            textColumn.addView(
+                TextView(this).apply {
+                    text = stop.customerName
+                    textSize = 14f
+                    setTypeface(typeface, android.graphics.Typeface.BOLD)
+                    setTextColor(ContextCompat.getColor(this@MainActivity, R.color.foreground))
+                },
+            )
+            textColumn.addView(
+                TextView(this).apply {
+                    text = stop.address
+                    textSize = 13f
+                    setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_secondary))
+                },
+            )
+
+            row.addView(indexBadge)
+            row.addView(textColumn)
+
+            when {
+                delivered -> row.addView(
+                    TextView(this).apply {
+                        text = "Delivered"
+                        textSize = 12f
+                        setTypeface(typeface, android.graphics.Typeface.BOLD)
+                        setTextColor(ContextCompat.getColor(this@MainActivity, R.color.success_pill_text))
+                        background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_pill_delivered)
+                        setPadding(dp(10), dp(4), dp(10), dp(4))
+                    },
+                )
+                isNext -> row.addView(
+                    MaterialButton(this).apply {
+                        text = "Mark delivered"
+                        textSize = 12f
+                        isAllCaps = false
+                        cornerRadius = dp(6)
+                        setPadding(dp(4), 0, dp(4), 0)
+                        setOnClickListener { markDelivered(stop.id) }
+                    },
+                )
+                else -> row.addView(
+                    TextView(this).apply {
+                        text = "Waiting"
+                        textSize = 12f
+                        setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_muted))
+                    },
+                )
+            }
+
+            card.addView(row)
+
+            if (stop.lat != null && stop.lng != null) {
+                val actionsRow = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                    ).apply { topMargin = dp(8) }
+                }
+                actionsRow.addView(
+                    MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+                        text = "Open map"
+                        textSize = 12f
+                        isAllCaps = false
+                        cornerRadius = dp(6)
+                        setOnClickListener { openMap(stop) }
+                    },
+                )
+                actionsRow.addView(
+                    MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+                        text = "Street View"
+                        textSize = 12f
+                        isAllCaps = false
+                        cornerRadius = dp(6)
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                        ).apply { marginStart = dp(8) }
+                        setOnClickListener { openStreetView(stop) }
+                    },
+                )
+                card.addView(actionsRow)
+            }
+
+            stopsContainer.addView(card)
+        }
+    }
+
+    // Hands off to the Google Maps app for turn-by-turn directions to this
+    // stop — google.navigation: is a Maps-specific intent scheme (not the
+    // generic geo: one), always routes from the user's current location.
+    // Falls back to a Maps web URL if the app isn't installed, rather than
+    // failing silently.
+    private fun openMap(delivery: Delivery) {
+        val lat = delivery.lat ?: return
+        val lng = delivery.lng ?: return
+        startActivity(MapActivity.intent(this, lat, lng, delivery.customerName, delivery.address))
+    }
+
+    // google.streetview:cbll= shows the closest Street View panorama to this
+    // stop's coordinates — same fallback pattern as openMap.
+    private fun openStreetView(delivery: Delivery) {
+        val lat = delivery.lat ?: return
+        val lng = delivery.lng ?: return
+        val streetViewIntent = Intent(Intent.ACTION_VIEW, Uri.parse("google.streetview:cbll=$lat,$lng")).apply {
+            setPackage("com.google.android.apps.maps")
+        }
+        if (streetViewIntent.resolveActivity(packageManager) != null) {
+            startActivity(streetViewIntent)
+        } else {
+            startActivity(
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$lat,$lng"),
+                ),
+            )
         }
     }
 

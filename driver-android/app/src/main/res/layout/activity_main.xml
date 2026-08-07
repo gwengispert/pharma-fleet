@@ -1,49 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Ported to match app/driver/page.js's layout: logo header, a bordered
+     "route" card (spinner + online toggle + status), then a "Delivery
+     checklist" section of bordered rows — same structure, native widgets. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@color/page_background"
+    android:fillViewport="true">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/app_name"
-        android:textSize="20sp"
-        android:textStyle="bold" />
-
-    <Spinner
-        android:id="@+id/driverSpinner"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp" />
+        android:orientation="vertical"
+        android:padding="20dp">
 
-    <com.google.android.material.switchmaterial.SwitchMaterial
-        android:id="@+id/onlineSwitch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="Go online" />
+        <!-- Header: matches components/Logo.jsx (teal badge + wordmark) -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/statusText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textColor="#666666" />
+            <FrameLayout
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_logo_badge">
 
-    <ScrollView
-        android:layout_width="380dp"
-        android:layout_height="384dp"
-        android:layout_marginTop="12dp"
-        android:layout_weight="1">
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@string/app_name"
+                    android:src="@drawable/ic_logo_cross" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/app_name"
+                android:textColor="@color/foreground"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <Spinner
+            android:id="@+id/driverSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_stop_row"
+            android:padding="12dp"
+            android:popupBackground="@color/surface" />
+
+        <!-- "Route card" — mirrors the web view's bordered status/stat panel -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/onlineSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Go online"
+                android:textColor="@color/foreground"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Delivery checklist"
+            android:textColor="@color/foreground"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
         <LinearLayout
             android:id="@+id/stopsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:divider="?android:attr/listDivider"
-            android:orientation="vertical"
-            android:showDividers="middle" />
-    </ScrollView>
-</LinearLayout>
+            android:orientation="vertical" />
+    </LinearLayout>
+</ScrollView>

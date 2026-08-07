@@ -102,5 +102,13 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("com.google.android.material:material:1.12.0")
 
+    // MapActivity's `com.google.android.gms.maps.*` imports (GoogleMap,
+    // SupportMapFragment, etc.) are already satisfied transitively by the
+    // Navigation SDK above — it bundles the entire Maps SDK internally.
+    // A separate play-services-maps dependency was tried here and removed:
+    // it caused checkDebugDuplicateClasses to fail with the whole
+    // com.google.android.gms.maps package duplicated between the two AARs.
+    // Reuses the same MAPS_API_KEY meta-data entry in the manifest either way.
+
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }

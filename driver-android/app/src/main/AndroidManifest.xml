@@ -7,6 +7,14 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
+    <!-- Android 11+ (API 30+) package visibility: without this, resolveActivity()/
+         startActivity() against Google Maps' google.navigation:/google.streetview:
+         intents (see MainActivity.openMap/openStreetView) can't see the Maps app
+         even when it's installed. -->
+    <queries>
+        <package android:name="com.google.android.apps.maps" />
+    </queries>
+
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
@@ -30,5 +38,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".MapActivity"
+            android:exported="false"
+            android:label="@string/app_name" />
     </application>
 </manifest>

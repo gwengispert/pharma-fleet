@@ -15,6 +15,12 @@ data class Delivery(
     val customerName: String,
     val address: String,
     val status: String,
+    // Nullable — lib/store.js allows a delivery to exist before it's been
+    // geocoded (see createDelivery's `data.lat ?? null`). In practice any
+    // delivery that's made it into an optimized route has both set, but the
+    // type doesn't promise it.
+    val lat: Double?,
+    val lng: Double?,
 )
 
 data class Route(val vehicleId: String, val deliveryIds: List<String>)
@@ -38,7 +44,7 @@ class ApiClient(private val baseUrl: String) {
     private fun get(path: String): String {
         val request = Request.Builder().url(baseUrl + path).get().build()
         client.newCall(request).execute().use { response ->
-            val bodyString = response.body?.string().orEmpty()
+            val bodyString = response.body.string()
             if (!response.isSuccessful) throw ApiException("$path failed: ${response.code} $bodyString")
             return bodyString
         }
@@ -50,7 +56,7 @@ class ApiClient(private val baseUrl: String) {
             .patch(body.toString().toRequestBody(jsonMediaType))
             .build()
         client.newCall(request).execute().use { response ->
-            val bodyString = response.body?.string().orEmpty()
+            val bodyString = response.body.string()
             if (!response.isSuccessful) throw ApiException("$path failed: ${response.code} $bodyString")
             return bodyString
         }
@@ -73,6 +79,8 @@ class ApiClient(private val baseUrl: String) {
                 customerName = o.getString("customerName"),
                 address = o.getString("address"),
                 status = o.getString("status"),
+                lat = o.optDoubleOrNull("lat"),
+                lng = o.optDoubleOrNull("lng"),
             )
         }
     }
@@ -105,3 +113,6 @@ class ApiClient(private val baseUrl: String) {
 
 private fun JSONObject.optStringOrNull(name: String): String? =
     if (!has(name) || isNull(name)) null else getString(name)
+
+private fun JSONObject.optDoubleOrNull(name: String): Double? =
+    if (!has(name) || isNull(name)) null else getDouble(name)

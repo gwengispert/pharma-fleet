@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Matches each delivery row in app/driver/page.js's checklist:
+     `rounded-lg border border-neutral-200 px-4 py-3`. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/surface" />
+    <corners android:radius="8dp" />
+    <stroke android:width="1dp" android:color="@color/border" />
+</shape>

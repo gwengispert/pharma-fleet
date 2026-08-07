@@ -1,0 +1,25 @@
+<resources>
+    <!-- Ported from app/globals.css + Tailwind's stock teal/neutral/green/amber
+         scales, matching the exact shades app/driver/page.js uses in light
+         mode. See values-night/colors.xml for the dark-mode counterparts. -->
+    <color name="page_background">#F7FAFA</color>
+    <color name="foreground">#171717</color>
+
+    <color name="surface">#FFFFFF</color>
+    <color name="border">#E5E5E5</color>
+
+    <color name="brand">#0F766E</color>       <!-- teal-700: primary buttons, spinner/switch tint -->
+    <color name="brand_pressed">#115E59</color> <!-- teal-800: hover/pressed -->
+    <color name="brand_accent">#0D9488</color> <!-- teal-600: card top-accent border -->
+    <color name="on_brand">#FFFFFF</color>
+
+    <color name="text_secondary">#737373</color>  <!-- neutral-500 -->
+    <color name="text_muted">#A3A3A3</color>      <!-- neutral-400 -->
+    <color name="text_strong">#404040</color>     <!-- neutral-700 -->
+
+    <color name="success">#16A34A</color>        <!-- green-600 -->
+    <color name="success_pill_bg">#DCFCE7</color> <!-- green-100 -->
+    <color name="success_pill_text">#15803D</color> <!-- green-700 -->
+
+    <color name="warning">#D97706</color>        <!-- amber-600 -->
+</resources>

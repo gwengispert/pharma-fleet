@@ -1,12 +1,5 @@
 <resources>
-    <!-- No launcher icon is declared in AndroidManifest.xml yet — Android
-         Studio will fall back to a default. Run Image Asset (right-click
-         res/ > New > Image Asset) to generate a real one before shipping. -->
     <style name="Theme.PharmaFleetDriver" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Mapped from app/globals.css + Tailwind teal, so Material widgets
-             (Switch, buttons, spinner popup) pick up the same brand color as
-             the web app without per-view overrides. Dark-mode values live in
-             values-night/themes.xml under the same style name. -->
         <item name="colorPrimary">@color/brand</item>
         <item name="colorOnPrimary">@color/on_brand</item>
         <item name="colorPrimaryContainer">@color/brand</item>
