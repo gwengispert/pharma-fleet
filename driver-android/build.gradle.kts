@@ -5,7 +5,7 @@
 // if it's been a while, and let Android Studio's own upgrade suggestions
 // win over these on first sync.
 plugins {
-    id("com.android.application") version "8.13.2" apply false
+    id("com.android.application") version "9.3.1" apply false
     id("org.jetbrains.kotlin.android") version "2.3.0" apply false
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin") version "2.0.0" apply false
 }
