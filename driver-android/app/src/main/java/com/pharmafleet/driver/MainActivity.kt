@@ -1,9 +1,7 @@
 package com.pharmafleet.driver
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.Gravity
@@ -17,6 +15,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
 
     private var drivers: List<Driver> = emptyList()
     private var selectedDriver: Driver? = null
+    private var currentStops: List<Delivery> = emptyList()
 
     // Set right before a programmatic setSelection() call (e.g. restoring
     // the selected driver after a poll refresh) so the resulting
@@ -64,6 +65,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        applySystemBarInsets()
         locationReporter = DriverLocationReporter(this)
 
         driverSpinner = findViewById(R.id.driverSpinner)
@@ -129,6 +131,18 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         locationReporter.stop()
+    }
+
+    // targetSdk 35+ forces edge-to-edge, so content draws under the status/nav
+    // bars. Pad the content view by the system-bar insets so the header isn't
+    // hidden behind the status bar.
+    private fun applySystemBarInsets() {
+        val content = findViewById<android.view.View>(android.R.id.content)
+        ViewCompat.setOnApplyWindowInsetsListener(content) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            insets
+        }
     }
 
     private fun hasLocationPermission() = ContextCompat.checkSelfPermission(
@@ -251,12 +265,11 @@ class MainActivity : AppCompatActivity() {
     // Mirrors app/driver/page.js's checklist rows: numbered circle (green
     // once delivered), name + address, and a right-aligned status — a
     // "Delivered" pill, a "Mark delivered" button for the next stop, or
-    // muted "Waiting" text for the rest. Below that, "Open map" launches an
-    // in-app map screen (MapActivity) and "Street View" hands off to the
-    // Google Maps app — no turn-by-turn UI is built here either way (out of
-    // scope — see driver-android/README.md).
+    // muted "Waiting" text for the rest. "Open map" opens the in-app map
+    // (MapActivity), which handles Next-stop navigation and Street View itself.
     private fun renderStops(stops: List<Delivery>) {
         stopsContainer.removeAllViews()
+        currentStops = stops
         val nextStopId = stops.firstOrNull { it.status != "delivered" }?.id
 
         stops.forEachIndexed { index, stop ->
@@ -370,19 +383,6 @@ class MainActivity : AppCompatActivity() {
                         setOnClickListener { openMap(stop) }
                     },
                 )
-                actionsRow.addView(
-                    MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
-                        text = "Street View"
-                        textSize = 12f
-                        isAllCaps = false
-                        cornerRadius = dp(6)
-                        layoutParams = LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.WRAP_CONTENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT,
-                        ).apply { marginStart = dp(8) }
-                        setOnClickListener { openStreetView(stop) }
-                    },
-                )
                 card.addView(actionsRow)
             }
 
@@ -390,35 +390,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Hands off to the Google Maps app for turn-by-turn directions to this
-    // stop — google.navigation: is a Maps-specific intent scheme (not the
-    // generic geo: one), always routes from the user's current location.
-    // Falls back to a Maps web URL if the app isn't installed, rather than
-    // failing silently.
+    // Opens the in-app map at the tapped stop, passing the whole ordered list
+    // of mappable stops so MapActivity's "Next stop" button can advance
+    // through them (and its Street View toggle can follow along).
     private fun openMap(delivery: Delivery) {
-        val lat = delivery.lat ?: return
-        val lng = delivery.lng ?: return
-        startActivity(MapActivity.intent(this, lat, lng, delivery.customerName, delivery.address))
-    }
-
-    // google.streetview:cbll= shows the closest Street View panorama to this
-    // stop's coordinates — same fallback pattern as openMap.
-    private fun openStreetView(delivery: Delivery) {
-        val lat = delivery.lat ?: return
-        val lng = delivery.lng ?: return
-        val streetViewIntent = Intent(Intent.ACTION_VIEW, Uri.parse("google.streetview:cbll=$lat,$lng")).apply {
-            setPackage("com.google.android.apps.maps")
-        }
-        if (streetViewIntent.resolveActivity(packageManager) != null) {
-            startActivity(streetViewIntent)
-        } else {
-            startActivity(
-                Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse("https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$lat,$lng"),
-                ),
-            )
-        }
+        val mappable = currentStops.filter { it.lat != null && it.lng != null }
+        val index = mappable.indexOfFirst { it.id == delivery.id }
+        if (index < 0) return
+        startActivity(MapActivity.intent(this, mappable, index))
     }
 
     private fun markDelivered(deliveryId: String) {

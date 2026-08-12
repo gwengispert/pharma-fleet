@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
@@ -89,7 +88,12 @@ dependencies {
     // DriverContext at all. Must stay within the Driver SDK's documented
     // supported range ([7.0, 8.0) per the 7.1.0 release notes) — check both
     // SDKs' release notes together before bumping either one independently.
-    implementation("com.google.android.libraries.navigation:navigation:7.0.0")
+    //
+    // Pinned to 7.8.0 (latest in range) rather than 7.0.0: the 7.0.0 native
+    // libs (libgmm-jni.so etc.) predate Google's Nov 2025 16 KB page-size
+    // Play Store requirement and fail the RELRO alignment check on 16 KB
+    // devices; later 7.x builds ship 16 KB-aligned .so files.
+    implementation("com.google.android.libraries.navigation:navigation:7.8.0")
 
     // Talks to the existing pharma-fleet Next.js REST API — plain OkHttp +
     // org.json rather than Retrofit/Moshi, since the API surface here is
@@ -110,5 +114,8 @@ dependencies {
     // com.google.android.gms.maps package duplicated between the two AARs.
     // Reuses the same MAPS_API_KEY meta-data entry in the manifest either way.
 
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    // The `_nio` flavor (not plain desugar_jdk_libs) is required by
+    // Navigation SDK 7.8.0's AAR metadata — it desugars java.nio APIs the
+    // newer SDK uses. See https://d.android.com/r/tools/api-desugaring-flavors
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.1.5")
 }
