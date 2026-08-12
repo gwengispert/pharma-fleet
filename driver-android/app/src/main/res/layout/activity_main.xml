@@ -1,99 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Ported to match app/driver/page.js's layout: logo header, a bordered
      "route" card (spinner + online toggle + status), then a "Delivery
-     checklist" section of bordered rows — same structure, native widgets. -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+     checklist" section of bordered rows. The header/card stay fixed; the
+     checklist scrolls on its own with a visible scroll bar. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/page_background"
-    android:fillViewport="true">
+    android:orientation="vertical"
+    android:padding="20dp">
 
+    <!-- Header: logo + wordmark (components/Logo.jsx), with the driver picker
+         shown as a user icon on the right. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:layout_marginBottom="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-        <!-- Header: matches components/Logo.jsx (teal badge + wordmark) -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+        <FrameLayout
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_logo_badge">
 
-            <FrameLayout
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="@drawable/bg_logo_badge">
-
-                <ImageView
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_gravity="center"
-                    android:contentDescription="@string/app_name"
-                    android:src="@drawable/ic_logo_cross" />
-            </FrameLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="@string/app_name"
-                android:textColor="@color/foreground"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <Spinner
-            android:id="@+id/driverSpinner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/bg_stop_row"
-            android:padding="12dp"
-            android:popupBackground="@color/surface" />
-
-        <!-- "Route card" — mirrors the web view's bordered status/stat panel -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/onlineSwitch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Go online"
-                android:textColor="@color/foreground"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/statusText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp" />
-        </LinearLayout>
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_logo_cross" />
+        </FrameLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="Delivery checklist"
+            android:layout_marginStart="8dp"
+            android:text="@string/app_name"
             android:textColor="@color/foreground"
-            android:textSize="15sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <!-- Driver picker as a user icon: the Spinner sits behind the icon
+             (invisible) but still receives the tap so its dropdown of driver
+             names opens — the ImageView is non-clickable so the touch passes
+             through. Keeps all the existing selection/polling logic. -->
+        <FrameLayout
+            android:layout_width="44dp"
+            android:layout_height="44dp">
+
+            <Spinner
+                android:id="@+id/driverSpinner"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:alpha="0"
+                android:popupBackground="@color/surface" />
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="false"
+                android:contentDescription="Select driver"
+                android:focusable="false"
+                android:padding="10dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_user"
+                android:tint="@color/foreground" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/onlineSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Go online"
+        android:textColor="@color/foreground"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="20dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Delivery checklist"
+        android:textColor="@color/foreground"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <!-- The checklist scrolls independently and always shows its scroll bar. -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fadeScrollbars="false"
+        android:scrollbarStyle="outsideOverlay"
+        android:scrollbars="vertical">
 
         <LinearLayout
             android:id="@+id/stopsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" />
-    </LinearLayout>
-</ScrollView>
+    </ScrollView>
+</LinearLayout>

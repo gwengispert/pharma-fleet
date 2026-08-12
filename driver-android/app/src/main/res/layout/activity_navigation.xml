@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- The Navigation SDK's turn-by-turn UI. It connects itself to the
+         Navigator singleton that NavigationActivity drives. -->
+    <fragment
+        android:id="@+id/navFragment"
+        android:name="com.google.android.libraries.navigation.SupportNavigationFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/navExit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_margin="12dp"
+        android:text="Exit"
+        app:icon="@drawable/ic_close"
+        app:iconGravity="textStart" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/navStreetView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_margin="12dp"
+        android:text="Street View"
+        app:icon="@drawable/ic_street_view"
+        app:iconGravity="textStart" />
+</FrameLayout>

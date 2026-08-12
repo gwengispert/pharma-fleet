@@ -27,6 +27,10 @@ data class Route(val vehicleId: String, val deliveryIds: List<String>)
 
 data class FleetEngineToken(val token: String, val expiration: String)
 
+// The configured warehouse/depot location (settings.depotLat/depotLng in
+// lib/store.js) — null until an admin sets a depot address.
+data class DepotLocation(val lat: Double?, val lng: Double?)
+
 class ApiException(message: String) : Exception(message)
 
 // Talks to the existing pharma-fleet Next.js REST API — the same endpoints
@@ -102,6 +106,11 @@ class ApiClient(private val baseUrl: String) {
     // to Fleet Engine's closeTask() server-side — nothing extra needed here.
     fun markDelivered(deliveryId: String) {
         patch("/api/deliveries/$deliveryId", JSONObject().put("status", "delivered"))
+    }
+
+    fun getDepot(): DepotLocation {
+        val o = JSONObject(get("/api/settings"))
+        return DepotLocation(o.optDoubleOrNull("depotLat"), o.optDoubleOrNull("depotLng"))
     }
 
     fun getFleetEngineToken(vehicleId: String): FleetEngineToken {

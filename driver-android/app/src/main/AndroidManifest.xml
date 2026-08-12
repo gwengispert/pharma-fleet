@@ -43,5 +43,15 @@
             android:name=".MapActivity"
             android:exported="false"
             android:label="@string/app_name" />
+
+        <activity
+            android:name=".NavigationActivity"
+            android:exported="false"
+            android:label="@string/app_name" />
+
+        <activity
+            android:name=".StreetViewActivity"
+            android:exported="false"
+            android:label="@string/app_name" />
     </application>
 </manifest>

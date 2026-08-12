@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/page_background"
@@ -65,23 +66,52 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/surface"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:padding="12dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/toggleViewButton"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Street View" />
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/toggleViewButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Street View"
+                app:icon="@drawable/ic_street_view"
+                app:iconGravity="textStart" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/nextButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="Preview next stop"
+                app:icon="@drawable/ic_arrow_right"
+                app:iconGravity="textStart" />
+        </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/nextButton"
-            android:layout_width="0dp"
+            android:id="@+id/startDrivingButton"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:text="Next stop" />
+            android:layout_marginTop="8dp"
+            android:text="Start Driving"
+            app:icon="@drawable/ic_navigation"
+            app:iconGravity="textStart" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/markDeliveredNextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Mark delivered &amp; next stop"
+            app:icon="@drawable/ic_check"
+            app:iconGravity="textStart" />
     </LinearLayout>
 </LinearLayout>

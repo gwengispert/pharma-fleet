@@ -352,6 +352,8 @@ class MainActivity : AppCompatActivity() {
                         isAllCaps = false
                         cornerRadius = dp(6)
                         setPadding(dp(4), 0, dp(4), 0)
+                        icon = ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_check)
+                        iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
                         setOnClickListener { markDelivered(stop.id) }
                     },
                 )
@@ -380,6 +382,8 @@ class MainActivity : AppCompatActivity() {
                         textSize = 12f
                         isAllCaps = false
                         cornerRadius = dp(6)
+                        icon = ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_map_pin)
+                        iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
                         setOnClickListener { openMap(stop) }
                     },
                 )
