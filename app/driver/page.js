@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/apiClient";
 import { decodePolyline } from "@/lib/polyline";
+import { useDriveSimulation } from "@/lib/useDriveSimulation";
 import MapView from "@/components/MapView";
 import Logo from "@/components/Logo";
 
@@ -29,8 +30,6 @@ function DriverView() {
   const [routes, setRoutes] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [simulating, setSimulating] = useState(false);
-  const [progress, setProgress] = useState(0);
 
   const loadAll = useCallback(async () => {
     const [settings, drivers, deliveries, routes] = await Promise.all([
@@ -59,6 +58,18 @@ function DriverView() {
   const driver = drivers.find((d) => d.id === driverId);
   const vehicleId = driver?.vehicleId || null;
   const route = vehicleId ? routes[vehicleId] : null;
+  const {
+    drive,
+    legPath,
+    vehiclePos,
+    progress,
+    driving,
+    start: startDrive,
+    speed,
+    speedOptions,
+    changeSpeed,
+    skip,
+  } = useDriveSimulation(vehicleId);
 
   const stops = useMemo(() => {
     if (!route) return [];
@@ -70,7 +81,7 @@ function DriverView() {
   // Memoized so MapView's `center` prop (and the underlying <GoogleMap>) sees
   // a stable reference across renders — an inline object literal here was
   // recreated every render (including every animation frame during the
-  // driving simulation), and @react-google-maps/api resyncs the real map's
+  // driving animation), and @react-google-maps/api resyncs the real map's
   // center to match a changed `center` prop, which was fighting the
   // simulation's own per-frame `setCenter` follow-camera calls in MapView.
   const depot = useMemo(
@@ -80,11 +91,27 @@ function DriverView() {
 
   // Depend on the polyline string itself, not the `route` object — `routes`
   // gets a brand-new object from every 5s poll even when nothing changed,
-  // which would otherwise recompute `path` (a new array reference) and
-  // restart MapView's simulation effect mid-animation on every poll tick.
+  // which would otherwise hand MapView a new `path` array on every poll tick.
   const routePolyline = route?.polyline;
   const path = useMemo(() => (routePolyline ? decodePolyline(routePolyline) : []), [routePolyline]);
   const nextStopId = stops.find((s) => s.status !== "delivered")?.id;
+  const driveTarget = drive ? stops.find((s) => s.id === drive.deliveryId) : null;
+
+  async function runDriveAction(action) {
+    try {
+      await action();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function startDriving() {
+    try {
+      await startDrive(nextStopId);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
 
   async function markDelivered(deliveryId) {
     try {
@@ -140,7 +167,7 @@ function DriverView() {
       </div>
 
       {error && (
-        <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
+        <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -151,23 +178,47 @@ function DriverView() {
         </p>
       ) : (
         <>
-          <section className="flex flex-col gap-3 rounded-xl border border-neutral-200 border-t-2 border-t-teal-600 p-5 dark:border-neutral-800 dark:border-t-teal-600">
+          <section className="flex flex-col gap-3 rounded-lg border border-neutral-300 bg-white p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex gap-6 text-sm">
                 <Stat label="Stops" value={stops.length} />
                 <Stat label="Distance" value={`${(route.totalDistanceMeters / 1000).toFixed(1)} km`} />
                 <Stat label="Est. duration" value={`${Math.round(route.totalDurationSeconds / 60)} min`} />
               </div>
-              <button
-                onClick={() => {
-                  setProgress(0);
-                  setSimulating(true);
-                }}
-                disabled={simulating}
-                className="rounded-md bg-teal-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-teal-800 disabled:opacity-50 dark:bg-teal-500 dark:text-teal-950 dark:hover:bg-teal-400"
-              >
-                {simulating ? `Driving… ${Math.round(progress * 100)}%` : "Start simulation"}
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Playback speed — shared with the Android app and kept for the next legs. */}
+                <label className="flex items-center gap-1.5 text-sm text-neutral-500">
+                  Speed
+                  <select
+                    value={speed}
+                    onChange={(e) => runDriveAction(() => changeSpeed(Number(e.target.value)))}
+                    className="h-8 rounded-full border border-neutral-300 bg-white px-3 text-sm font-medium text-neutral-700"
+                  >
+                    {(speedOptions.length ? speedOptions : [1]).map((n) => (
+                      <option key={n} value={n}>
+                        {n}×
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {driving && (
+                  <button
+                    onClick={() => runDriveAction(skip)}
+                    className="h-8 rounded-full border border-neutral-300 px-4 text-sm font-medium text-primary-700 transition hover:bg-primary-50"
+                  >
+                    Skip to destination
+                  </button>
+                )}
+                <button
+                  onClick={startDriving}
+                  disabled={driving || !nextStopId}
+                  className="h-8 rounded-full bg-primary-700 px-4 text-sm font-medium text-white transition hover:bg-primary-800 disabled:opacity-50"
+                >
+                  {driving
+                    ? `Driving to ${driveTarget?.customerName ?? "stop"}… ${Math.round(progress * 100)}%`
+                    : "Start driving"}
+                </button>
+              </div>
             </div>
             <div className="h-80 w-full overflow-hidden rounded-lg">
               <MapView
@@ -175,13 +226,10 @@ function DriverView() {
                 depot={depot}
                 stops={stops}
                 path={path}
-                simulating={simulating}
-                durationMs={20000}
+                vehiclePos={vehiclePos}
+                legPath={driving ? legPath : []}
+                following={driving}
                 driverMode
-                onProgress={(f) => {
-                  setProgress(f);
-                  if (f >= 1) setSimulating(false);
-                }}
               />
             </div>
           </section>
@@ -192,12 +240,12 @@ function DriverView() {
               {stops.map((stop, i) => (
                 <li
                   key={stop.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 px-4 py-3 dark:border-neutral-800"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 px-4 py-3"
                 >
                   <div className="flex items-center gap-3">
                     <span
                       className={`flex h-6 w-6 items-center justify-center rounded-full text-xs text-white ${
-                        stop.status === "delivered" ? "bg-green-600" : "bg-teal-700 dark:bg-teal-500 dark:text-teal-950"
+                        stop.status === "delivered" ? "bg-green-600" : "bg-primary-700"
                       }`}
                     >
                       {i + 1}
@@ -224,7 +272,7 @@ function DriverView() {
                   ) : stop.id === nextStopId ? (
                     <button
                       onClick={() => markDelivered(stop.id)}
-                      className="rounded-md bg-teal-700 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-teal-800 dark:bg-teal-500 dark:text-teal-950 dark:hover:bg-teal-400"
+                      className="rounded-full bg-primary-700 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-primary-800"
                     >
                       Mark delivered
                     </button>

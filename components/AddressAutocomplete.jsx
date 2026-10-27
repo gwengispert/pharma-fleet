@@ -108,7 +108,7 @@ export default function AddressAutocomplete({
           <button
             type="button"
             onClick={() => setPickerOpen((open) => !open)}
-            className="whitespace-nowrap rounded-md border border-neutral-300 px-2 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-900"
+            className="whitespace-nowrap rounded-md border border-neutral-300 px-2 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50"
           >
             📍 {pickerOpen ? "Hide map" : "Pick on map"}
           </button>
@@ -118,7 +118,7 @@ export default function AddressAutocomplete({
       {pickerOpen && isLoaded && (
         <div className="flex flex-col gap-1">
           <div
-            className="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800"
+            className="overflow-hidden rounded-lg border border-neutral-200"
             style={PICKER_STYLE}
           >
             <GoogleMap

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Navigation header maneuver: turn right (line style, tinted white in use). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M8,20L8,12Q8,8 12,8L18,8M14,4L18,8L14,12"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.25"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

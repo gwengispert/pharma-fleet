@@ -11,10 +11,10 @@ function formatWindow(windowStart, windowEnd) {
 }
 
 const STATUS_STYLES = {
-  pending: "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300",
-  assigned: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
-  "in-transit": "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-  delivered: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
+  pending: "bg-neutral-100 text-neutral-600",
+  assigned: "bg-blue-100 text-blue-700",
+  "in-transit": "bg-amber-100 text-amber-700",
+  delivered: "bg-green-100 text-green-700",
 };
 
 export default function DeliveryTable({
@@ -40,7 +40,7 @@ export default function DeliveryTable({
     <div className="overflow-x-auto">
       <table className="w-full min-w-[720px] text-left text-sm">
         <thead>
-          <tr className="border-b border-neutral-200 text-xs uppercase text-neutral-500 dark:border-neutral-800">
+          <tr className="border-b border-neutral-200 text-xs uppercase text-neutral-500">
             {selectable && <th className="w-8 py-2"></th>}
             <th className="py-2 pr-3">Customer</th>
             <th className="py-2 pr-3">Address</th>
@@ -68,7 +68,7 @@ export default function DeliveryTable({
                 }}
               />
             ) : (
-              <tr key={d.id} className="border-b border-neutral-100 dark:border-neutral-900">
+              <tr key={d.id} className="border-b border-neutral-100">
                 {selectable && (
                   <td className="py-2">
                     <input
@@ -107,7 +107,7 @@ export default function DeliveryTable({
                     {onUpdate && (
                       <button
                         onClick={() => setEditingId(d.id)}
-                        className="mr-3 text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+                        className="mr-3 text-xs text-neutral-400 hover:text-neutral-700"
                       >
                         edit
                       </button>
@@ -176,12 +176,12 @@ function DeliveryEditRow({ delivery, apiKey, vehiclesById = {}, driversById = {}
   }
 
   return (
-    <tr className="border-b border-neutral-100 dark:border-neutral-900">
+    <tr className="border-b border-neutral-100">
       <td className="py-2 pr-3">
         <input
           value={customerName}
           onChange={(e) => setCustomerName(e.target.value)}
-          className="w-full rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="w-full rounded-md border border-neutral-300 px-2 py-1 text-sm"
         />
       </td>
       <td className="py-2 pr-3 min-w-[240px]">
@@ -192,7 +192,7 @@ function DeliveryEditRow({ delivery, apiKey, vehiclesById = {}, driversById = {}
           onPlaceSelected={handlePlaceSelected}
           countryRestriction="ph"
           coords={coords}
-          className="w-full rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="w-full rounded-md border border-neutral-300 px-2 py-1 text-sm"
         />
       </td>
       <td className="py-2 pr-3">
@@ -201,7 +201,7 @@ function DeliveryEditRow({ delivery, apiKey, vehiclesById = {}, driversById = {}
           min="0"
           value={weightKg}
           onChange={(e) => setWeightKg(e.target.value)}
-          className="w-20 rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="w-20 rounded-md border border-neutral-300 px-2 py-1 text-sm"
         />
       </td>
       <td className="py-2 pr-3">
@@ -210,14 +210,14 @@ function DeliveryEditRow({ delivery, apiKey, vehiclesById = {}, driversById = {}
             type="time"
             value={windowStart}
             onChange={(e) => setWindowStart(e.target.value)}
-            className="w-24 rounded-md border border-neutral-300 px-1 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="w-24 rounded-md border border-neutral-300 px-1 py-1 text-sm"
           />
           <span className="text-neutral-400">–</span>
           <input
             type="time"
             value={windowEnd}
             onChange={(e) => setWindowEnd(e.target.value)}
-            className="w-24 rounded-md border border-neutral-300 px-1 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="w-24 rounded-md border border-neutral-300 px-1 py-1 text-sm"
           />
           <label className="flex items-center gap-1 text-xs text-neutral-500" title="Requires refrigeration">
             <input
@@ -245,11 +245,11 @@ function DeliveryEditRow({ delivery, apiKey, vehiclesById = {}, driversById = {}
         <button
           onClick={handleSave}
           disabled={saving || !customerName.trim() || !address.trim()}
-          className="mr-3 text-xs font-medium text-neutral-900 hover:underline disabled:opacity-50 dark:text-white"
+          className="mr-3 text-xs font-medium text-neutral-900 hover:underline disabled:opacity-50"
         >
           {saving ? "Saving…" : "save"}
         </button>
-        <button onClick={onCancel} className="text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200">
+        <button onClick={onCancel} className="text-xs text-neutral-400 hover:text-neutral-700">
           cancel
         </button>
         {error && <div className="text-xs text-red-600">{error}</div>}

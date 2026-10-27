@@ -1,5 +1,6 @@
 package com.pharmafleet.driver
 
+import com.google.android.gms.maps.model.LatLng
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -30,6 +31,41 @@ data class FleetEngineToken(val token: String, val expiration: String)
 // The configured warehouse/depot location (settings.depotLat/depotLng in
 // lib/store.js) — null until an admin sets a depot address.
 data class DepotLocation(val lat: Double?, val lng: Double?)
+
+// One maneuver on a drive's leg, for the navigation header: it happens when
+// the vehicle reaches `startProgress` (0-1 along the leg). `maneuver` is a
+// Directions API maneuver type ("turn-left", "ramp-right", …), "arrive" for
+// the last step, or null for continue/head.
+data class NavStep(val instruction: String, val maneuver: String?, val startProgress: Double)
+
+// One leg of a vehicle's shared simulated drive (lib/driveSimulation.server.js
+// on the backend): the road path from the depot / previous stop to
+// `deliveryId`, the real-world leg, and its playback state — progress
+// `anchorProgress` at server time `anchorAt`, advancing `speed`x real time.
+data class Drive(
+    val vehicleId: String,
+    val deliveryId: String,
+    val stopIndex: Int,
+    val path: List<LatLng>,
+    val startedAt: Long,
+    val realDurationSeconds: Long,
+    val distanceMeters: Long,
+    val speed: Double,
+    val anchorAt: Long,
+    val anchorProgress: Double,
+    val steps: List<NavStep>,
+) {
+    // Same formula as the backend's progressAt().
+    fun progressAt(serverNow: Long): Double {
+        val advanced = (serverNow - anchorAt) * speed / (realDurationSeconds * 1000.0)
+        return (anchorProgress + advanced).coerceIn(0.0, 1.0)
+    }
+}
+
+// `serverNow` lets the caller correct for the device clock differing from
+// the backend's before interpolating the vehicle's position. `speed` is the
+// vehicle's chosen playback speed (one of `speeds`), even between drives.
+data class DriveState(val drive: Drive?, val serverNow: Long, val speed: Double, val speeds: List<Double>)
 
 class ApiException(message: String) : Exception(message)
 
@@ -62,6 +98,21 @@ class ApiClient(private val baseUrl: String) {
         client.newCall(request).execute().use { response ->
             val bodyString = response.body.string()
             if (!response.isSuccessful) throw ApiException("$path failed: ${response.code} $bodyString")
+            return bodyString
+        }
+    }
+
+    private fun post(path: String, body: JSONObject): String {
+        val request = Request.Builder()
+            .url(baseUrl + path)
+            .post(body.toString().toRequestBody(jsonMediaType))
+            .build()
+        client.newCall(request).execute().use { response ->
+            val bodyString = response.body.string()
+            if (!response.isSuccessful) {
+                val message = runCatching { JSONObject(bodyString).getString("error") }.getOrNull()
+                throw ApiException(message ?: "$path failed: ${response.code} $bodyString")
+            }
             return bodyString
         }
     }
@@ -111,6 +162,61 @@ class ApiClient(private val baseUrl: String) {
     fun getDepot(): DepotLocation {
         val o = JSONObject(get("/api/settings"))
         return DepotLocation(o.optDoubleOrNull("depotLat"), o.optDoubleOrNull("depotLng"))
+    }
+
+    // The same shared drive the web driver view and admin map follow — see
+    // app/api/simulation/drive/route.js.
+    fun getDrive(vehicleId: String): DriveState =
+        parseDriveState(JSONObject(get("/api/simulation/drive?vehicleId=$vehicleId")))
+
+    fun startDrive(vehicleId: String, deliveryId: String): DriveState =
+        parseDriveState(
+            JSONObject(
+                post("/api/simulation/drive", JSONObject().put("vehicleId", vehicleId).put("deliveryId", deliveryId)),
+            ),
+        )
+
+    // Changes the vehicle's playback speed (current drive and next legs).
+    fun setDriveSpeed(vehicleId: String, speed: Double): DriveState =
+        parseDriveState(JSONObject(patch("/api/simulation/drive", JSONObject().put("vehicleId", vehicleId).put("speed", speed))))
+
+    // Jumps the current drive straight to its destination stop.
+    fun skipDrive(vehicleId: String): DriveState =
+        parseDriveState(JSONObject(patch("/api/simulation/drive", JSONObject().put("vehicleId", vehicleId).put("skip", true))))
+
+    private fun parseDriveState(o: JSONObject): DriveState {
+        val d = if (o.isNull("drive")) null else o.getJSONObject("drive")
+        val drive = d?.let {
+            val pathArr = it.getJSONArray("path")
+            Drive(
+                vehicleId = it.getString("vehicleId"),
+                deliveryId = it.getString("deliveryId"),
+                stopIndex = it.getInt("stopIndex"),
+                path = (0 until pathArr.length()).map { i ->
+                    val p = pathArr.getJSONArray(i)
+                    LatLng(p.getDouble(0), p.getDouble(1))
+                },
+                startedAt = it.getLong("startedAt"),
+                realDurationSeconds = it.getLong("realDurationSeconds"),
+                distanceMeters = it.optLong("distanceMeters", 0),
+                speed = it.getDouble("speed"),
+                anchorAt = it.getLong("anchorAt"),
+                anchorProgress = it.getDouble("anchorProgress"),
+                steps = it.optJSONArray("steps")?.let { arr ->
+                    (0 until arr.length()).map { i ->
+                        val step = arr.getJSONObject(i)
+                        NavStep(step.getString("instruction"), step.optStringOrNull("maneuver"), step.getDouble("startProgress"))
+                    }
+                } ?: emptyList(),
+            )
+        }
+        val speedsArr = o.optJSONArray("speeds")
+        return DriveState(
+            drive = drive,
+            serverNow = o.getLong("serverNow"),
+            speed = o.optDouble("speed", 1.0),
+            speeds = if (speedsArr == null) listOf(1.0) else (0 until speedsArr.length()).map { speedsArr.getDouble(it) },
+        )
     }
 
     fun getFleetEngineToken(vehicleId: String): FleetEngineToken {

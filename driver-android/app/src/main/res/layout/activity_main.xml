@@ -36,10 +36,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            android:fontFamily="sans-serif"
             android:text="@string/app_name"
-            android:textColor="@color/foreground"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textColor="@color/text_strong"
+            android:textSize="20sp" />
 
         <View
             android:layout_width="0dp"
@@ -74,14 +74,14 @@
         </FrameLayout>
     </LinearLayout>
 
-    <com.google.android.material.switchmaterial.SwitchMaterial
+    <com.google.android.material.materialswitch.MaterialSwitch
         android:id="@+id/onlineSwitch"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
         android:text="Go online"
         android:textColor="@color/foreground"
-        android:textSize="15sp"
-        android:textStyle="bold" />
+        android:textSize="15sp" />
 
     <TextView
         android:id="@+id/statusText"
@@ -96,10 +96,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
+        android:fontFamily="sans-serif-medium"
         android:text="Delivery checklist"
         android:textColor="@color/foreground"
-        android:textSize="15sp"
-        android:textStyle="bold" />
+        android:textSize="16sp" />
 
     <!-- The checklist scrolls independently and always shows its scroll bar. -->
     <ScrollView

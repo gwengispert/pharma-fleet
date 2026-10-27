@@ -36,7 +36,7 @@ export default function DriverForm({ vehicles, onCreate }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Jane Doe"
-          className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
         />
       </div>
       <div className="flex flex-col gap-1">
@@ -45,7 +45,7 @@ export default function DriverForm({ vehicles, onCreate }) {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="optional"
-          className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
         />
       </div>
       <div className="flex flex-col gap-1">
@@ -53,7 +53,7 @@ export default function DriverForm({ vehicles, onCreate }) {
         <select
           value={vehicleId}
           onChange={(e) => setVehicleId(e.target.value)}
-          className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
         >
           <option value="">Unassigned</option>
           {vehicles.map((v) => (
@@ -66,7 +66,7 @@ export default function DriverForm({ vehicles, onCreate }) {
       <button
         type="submit"
         disabled={submitting || !name.trim()}
-        className="rounded-md bg-teal-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-teal-800 disabled:opacity-50 dark:bg-teal-500 dark:text-teal-950 dark:hover:bg-teal-400"
+        className="rounded-full bg-primary-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-primary-800 disabled:opacity-50"
       >
         {submitting ? "Adding…" : "Add driver"}
       </button>

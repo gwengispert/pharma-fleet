@@ -4,7 +4,7 @@
 export default function FieldLabel({ icon: Icon, children }) {
   return (
     <label className="flex items-center gap-1 text-xs text-neutral-500">
-      <Icon className="h-3.5 w-3.5 flex-none text-neutral-400 dark:text-neutral-500" />
+      <Icon className="h-3.5 w-3.5 flex-none text-neutral-400" />
       {children}
     </label>
   );

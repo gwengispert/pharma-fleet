@@ -18,7 +18,7 @@ export default async function HomePage() {
       <div className="grid w-full gap-6 sm:grid-cols-2">
         <Link
           href="/admin"
-          className="flex flex-col gap-2 rounded-xl border border-neutral-200 p-6 transition hover:border-teal-400 hover:shadow-sm dark:border-neutral-800 dark:hover:border-teal-700"
+          className="flex flex-col gap-2 rounded-lg border border-neutral-300 bg-white p-6 transition hover:shadow-g2"
         >
           <span className="text-lg font-medium">Admin Dashboard</span>
           <span className="text-sm text-neutral-500">
@@ -26,7 +26,7 @@ export default async function HomePage() {
           </span>
         </Link>
 
-        <div className="flex flex-col gap-3 rounded-xl border border-neutral-200 p-6 dark:border-neutral-800">
+        <div className="flex flex-col gap-3 rounded-lg border border-neutral-300 bg-white p-6">
           <span className="text-lg font-medium">Driver View</span>
           {drivers.length === 0 ? (
             <span className="text-sm text-neutral-500">
@@ -38,7 +38,7 @@ export default async function HomePage() {
                 <Link
                   key={driver.id}
                   href={`/driver?driverId=${driver.id}`}
-                  className="rounded-lg border border-neutral-200 px-3 py-2 text-sm transition hover:border-teal-400 hover:bg-teal-50 dark:border-neutral-800 dark:hover:border-teal-700 dark:hover:bg-neutral-900"
+                  className="rounded-lg border border-neutral-200 px-3 py-2 text-sm transition hover:border-primary-400 hover:bg-primary-50"
                 >
                   Driver: {driver.name}
                 </Link>

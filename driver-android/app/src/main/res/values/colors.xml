@@ -1,25 +1,32 @@
 <resources>
-    <!-- Ported from app/globals.css + Tailwind's stock teal/neutral/green/amber
-         scales, matching the exact shades app/driver/page.js uses in light
-         mode. See values-night/colors.xml for the dark-mode counterparts. -->
-    <color name="page_background">#F7FAFA</color>
-    <color name="foreground">#171717</color>
+    <!-- Mirrors the web app's light-only, Google-style theme (app/globals.css):
+         Google blue as the brand color and Google's grey ramp. -->
+    <color name="page_background">#FFFFFF</color>
+    <color name="foreground">#202124</color>         <!-- grey 900 -->
 
     <color name="surface">#FFFFFF</color>
-    <color name="border">#E5E5E5</color>
+    <color name="surface_variant">#F8F9FA</color>    <!-- grey 50: hover/pressed rows -->
+    <color name="border">#DADCE0</color>             <!-- grey 300: card borders, dividers -->
 
-    <color name="brand">#0F766E</color>       <!-- teal-700: primary buttons, spinner/switch tint -->
-    <color name="brand_pressed">#115E59</color> <!-- teal-800: hover/pressed -->
-    <color name="brand_accent">#0D9488</color> <!-- teal-600: card top-accent border -->
+    <color name="brand">#1A73E8</color>              <!-- primary-700: filled buttons, badges -->
+    <color name="brand_pressed">#1765CC</color>      <!-- primary-800 -->
+    <color name="brand_container">#E8F0FE</color>    <!-- primary-50: selected chips -->
+    <color name="on_brand_container">#1765CC</color> <!-- primary-800 -->
     <color name="on_brand">#FFFFFF</color>
 
-    <color name="text_secondary">#737373</color>  <!-- neutral-500 -->
-    <color name="text_muted">#A3A3A3</color>      <!-- neutral-400 -->
-    <color name="text_strong">#404040</color>     <!-- neutral-700 -->
+    <color name="text_secondary">#5F6368</color>     <!-- grey 700 (neutral-500 on web) -->
+    <color name="text_muted">#9AA0A6</color>         <!-- grey 500 (neutral-400 on web) -->
+    <color name="text_strong">#3C4043</color>        <!-- grey 800 (neutral-700 on web) -->
 
-    <color name="success">#16A34A</color>        <!-- green-600 -->
-    <color name="success_pill_bg">#DCFCE7</color> <!-- green-100 -->
-    <color name="success_pill_text">#15803D</color> <!-- green-700 -->
+    <color name="success">#188038</color>            <!-- Google green 700 -->
+    <color name="success_pill_bg">#E6F4EA</color>    <!-- Google green 50 -->
+    <color name="success_pill_text">#137333</color>  <!-- Google green 800 -->
 
-    <color name="warning">#D97706</color>        <!-- amber-600 -->
+    <color name="eta_on_time">#188038</color>       <!-- Google Maps' green ETA -->
+
+    <color name="nav_primary">#1A73E8</color>        <!-- turn-by-turn header (next maneuver), Google blue -->
+    <color name="nav_secondary">#FFFFFF</color>      <!-- "Then …" secondary header -->
+    <color name="nav_route">#1A73E8</color>          <!-- route line still ahead of the vehicle -->
+
+    <color name="warning">#D97706</color>            <!-- amber-600, as the web's arrival windows -->
 </resources>

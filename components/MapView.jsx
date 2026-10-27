@@ -1,112 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { GoogleMap, Marker, Polyline, useJsApiLoader } from "@react-google-maps/api";
 import { GOOGLE_MAPS_LIBRARIES } from "@/lib/googleMapsLibraries";
+import CarMarker from "@/components/CarMarker";
 
 const containerStyle = { width: "100%", height: "100%" };
-
-function haversineMeters(a, b) {
-  const R = 6371000;
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-  const lat1 = (a.lat * Math.PI) / 180;
-  const lat2 = (b.lat * Math.PI) / 180;
-  const sinDLat = Math.sin(dLat / 2);
-  const sinDLng = Math.sin(dLng / 2);
-  const h = sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
-  return 2 * R * Math.asin(Math.sqrt(h));
-}
-
-// Compass bearing (0-360, 0 = north, clockwise) from point a to point b —
-// used to point the vehicle marker in its direction of travel. Google Maps
-// only rotates the actual map camera for vector maps (which need a Map ID
-// configured in Cloud Console); plain raster maps ignore `heading`, so
-// rotating the marker icon itself is what actually works here.
-function bearingDegrees(a, b) {
-  const lat1 = (a.lat * Math.PI) / 180;
-  const lat2 = (b.lat * Math.PI) / 180;
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-  const y = Math.sin(dLng) * Math.cos(lat2);
-  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
-  return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
-}
-
-// Walks the decoded route path and returns the {lat,lng,heading} at
-// `fraction` (0-1) of the total path length — used to animate the simulated
-// vehicle marker, including which way it should be pointing.
-function positionAlongPath(path, fraction) {
-  if (!path.length) return null;
-  if (path.length === 1) return { ...path[0], heading: 0 };
-
-  const segmentLengths = [];
-  let total = 0;
-  for (let i = 0; i < path.length - 1; i++) {
-    const len = haversineMeters(path[i], path[i + 1]);
-    segmentLengths.push(len);
-    total += len;
-  }
-  if (total === 0) return { ...path[0], heading: 0 };
-
-  let target = total * Math.min(Math.max(fraction, 0), 1);
-  for (let i = 0; i < segmentLengths.length; i++) {
-    if (target <= segmentLengths[i]) {
-      const t = segmentLengths[i] === 0 ? 0 : target / segmentLengths[i];
-      const a = path[i];
-      const b = path[i + 1];
-      return {
-        lat: a.lat + (b.lat - a.lat) * t,
-        lng: a.lng + (b.lng - a.lng) * t,
-        heading: bearingDegrees(a, b),
-      };
-    }
-    target -= segmentLengths[i];
-  }
-  const last = path[path.length - 1];
-  const prev = path[path.length - 2];
-  return { ...last, heading: bearingDegrees(prev, last) };
-}
-
-// For each stop (in route order), finds the closest point on `path` and
-// returns its cumulative-distance fraction (0-1) along the whole path — the
-// simulation pauses when the animated position crosses each of these.
-function computeStopFractions(path, stops) {
-  if (path.length < 2 || stops.length === 0) return [];
-
-  const cumulative = [0];
-  for (let i = 0; i < path.length - 1; i++) {
-    cumulative.push(cumulative[i] + haversineMeters(path[i], path[i + 1]));
-  }
-  const total = cumulative[cumulative.length - 1];
-  if (total === 0) return stops.map(() => 0);
-
-  return stops.map((stop) => {
-    let bestIdx = 0;
-    let bestDist = Infinity;
-    for (let i = 0; i < path.length; i++) {
-      const d = haversineMeters(path[i], { lat: stop.lat, lng: stop.lng });
-      if (d < bestDist) {
-        bestDist = d;
-        bestIdx = i;
-      }
-    }
-    return cumulative[bestIdx] / total;
-  });
-}
-
-const STOP_PAUSE_MS = 2000;
 
 export default function MapView({
   apiKey,
   depot,
   stops = [],
   path = [],
-  simulating = false,
-  durationMs = 20000,
-  onProgress,
+  // The simulated vehicle, driven by useDriveSimulation (shared with the
+  // Android app): its current {lat,lng,heading} and the leg it's driving,
+  // highlighted over the full route.
+  vehiclePos = null,
+  legPath = [],
+  // While true (and in driverMode), the camera follows `vehiclePos`.
+  following = false,
   // Driver-facing behavior: zoom into the depot while idle (instead of
   // fitting bounds to the whole route) and have the camera follow the
-  // vehicle marker as it animates. Off by default since MapView is also used
+  // vehicle marker as it drives. Off by default since MapView is also used
   // for the admin's route-overview preview, where seeing the whole route at
   // once is the point.
   driverMode = false,
@@ -117,99 +32,64 @@ export default function MapView({
     libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
-  const [vehiclePos, setVehiclePos] = useState(null);
-  const startRef = useRef(null);
-  const rafRef = useRef(null);
   const mapRef = useRef(null);
-  const pauseUntilRef = useRef(null);
-  const pauseAccumRef = useRef(0);
-  const nextStopIndexRef = useRef(0);
+  // State (not just the ref) so the idle-camera effect re-runs once the map
+  // instance exists — onLoad fires after the first effects have run.
+  const [mapReady, setMapReady] = useState(false);
 
-  // Kept in a ref (rather than an effect dependency) so a new onProgress
-  // function identity on every parent render doesn't restart the animation
-  // effect — that was resetting startRef to null on nearly every frame,
-  // pinning `fraction` at ~0 forever instead of ever counting up.
-  const onProgressRef = useRef(onProgress);
+  // Zoom in once when a drive starts; after that only re-center, so the
+  // driver can still zoom by hand mid-drive.
   useEffect(() => {
-    onProgressRef.current = onProgress;
-  }, [onProgress]);
+    if (driverMode && following && mapRef.current) mapRef.current.setZoom(14);
+  }, [driverMode, following]);
 
-  // Same pattern for the per-stop pause fractions: recomputed whenever
-  // path/stops change (including polling-driven reference churn that
-  // shouldn't restart a simulation already in progress).
-  const stopFractionsRef = useRef([]);
+  // Read (not depended on) by the idle-camera effect below, so it can center
+  // on a vehicle parked at a stop without re-running every animation frame.
+  const vehiclePosRef = useRef(vehiclePos);
   useEffect(() => {
-    stopFractionsRef.current = computeStopFractions(path, stops);
-  }, [path, stops]);
+    vehiclePosRef.current = vehiclePos;
+  }, [vehiclePos]);
 
   useEffect(() => {
-    if (!simulating || path.length < 2) {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      return;
+    if (driverMode && following && vehiclePos && mapRef.current) {
+      mapRef.current.setCenter({ lat: vehiclePos.lat, lng: vehiclePos.lng });
     }
-    startRef.current = null;
-    pauseUntilRef.current = null;
-    pauseAccumRef.current = 0;
-    nextStopIndexRef.current = 0;
-    if (driverMode && mapRef.current) {
-      mapRef.current.setZoom(13);
-    }
+  }, [driverMode, following, vehiclePos]);
 
-    function step(ts) {
-      if (startRef.current == null) startRef.current = ts;
-
-      if (pauseUntilRef.current != null) {
-        if (ts < pauseUntilRef.current) {
-          rafRef.current = requestAnimationFrame(step);
-          return;
-        }
-        pauseAccumRef.current += STOP_PAUSE_MS;
-        pauseUntilRef.current = null;
-      }
-
-      const drivingElapsed = ts - startRef.current - pauseAccumRef.current;
-      let fraction = Math.min(Math.max(drivingElapsed / durationMs, 0), 1);
-
-      const stopFractions = stopFractionsRef.current;
-      const nextIdx = nextStopIndexRef.current;
-      if (nextIdx < stopFractions.length && fraction >= stopFractions[nextIdx]) {
-        fraction = stopFractions[nextIdx]; // snap exactly to the stop before pausing
-        nextStopIndexRef.current = nextIdx + 1;
-        pauseUntilRef.current = ts + STOP_PAUSE_MS;
-      }
-
-      const pos = positionAlongPath(path, fraction);
-      setVehiclePos(pos);
-      if (driverMode && pos && mapRef.current) {
-        mapRef.current.setCenter(pos);
-      }
-      onProgressRef.current?.(fraction);
-      if (fraction < 1) {
-        rafRef.current = requestAnimationFrame(step);
-      }
-    }
-    rafRef.current = requestAnimationFrame(step);
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, [simulating, path, durationMs, driverMode]);
-
-  const center = useMemo(() => {
+  // Only the map's starting center. <GoogleMap> re-applies `center` whenever
+  // the prop changes, which snapped the map back on every parent re-render
+  // (polls, drive animation frames) — the camera is driven by the effects
+  // here instead.
+  const [initialCenter] = useState(() => {
     if (depot) return depot;
     if (stops[0]) return { lat: stops[0].lat, lng: stops[0].lng };
     return { lat: 0, lng: 0 };
-  }, [depot, stops]);
+  });
 
   const onLoad = useCallback((map) => {
     mapRef.current = map;
+    setMapReady(true);
   }, []);
 
-  useEffect(() => {
-    if (!isLoaded || !mapRef.current || !window.google) return;
-    if (simulating) return; // camera follows the vehicle instead — see the effect above
+  // Depot and stop coordinates as a plain string, so the idle camera only
+  // re-fits when one actually moves — parents hand MapView equal-but-new
+  // depot/stops objects on every poll and animation frame, and depending on
+  // those identities re-fit the map constantly, undoing any pan or zoom.
+  const cameraKey = JSON.stringify({
+    depot: depot ? [depot.lat, depot.lng] : null,
+    stops: stops.filter((s) => s.lat != null && s.lng != null).map((s) => [s.lat, s.lng]),
+  });
 
-    if (driverMode && depot) {
-      mapRef.current.setCenter(depot);
+  useEffect(() => {
+    if (!isLoaded || !mapReady || !window.google) return;
+    if (following) return; // camera follows the vehicle instead — see the effects above
+
+    const camera = JSON.parse(cameraKey);
+    const depot = camera.depot && { lat: camera.depot[0], lng: camera.depot[1] };
+
+    if (driverMode && (vehiclePosRef.current || depot)) {
+      const parked = vehiclePosRef.current;
+      mapRef.current.setCenter(parked ? { lat: parked.lat, lng: parked.lng } : depot);
       mapRef.current.setZoom(15);
       return;
     }
@@ -220,18 +100,16 @@ export default function MapView({
       bounds.extend(depot);
       any = true;
     }
-    stops.forEach((s) => {
-      if (s.lat != null && s.lng != null) {
-        bounds.extend({ lat: s.lat, lng: s.lng });
-        any = true;
-      }
+    camera.stops.forEach(([lat, lng]) => {
+      bounds.extend({ lat, lng });
+      any = true;
     });
     if (any) mapRef.current.fitBounds(bounds, 60);
-  }, [isLoaded, depot, stops, simulating, driverMode]);
+  }, [isLoaded, mapReady, cameraKey, following, driverMode]);
 
   if (!apiKey) {
     return (
-      <div className="flex h-full w-full items-center justify-center rounded-lg bg-neutral-100 p-4 text-center text-sm text-neutral-500 dark:bg-neutral-800">
+      <div className="flex h-full w-full items-center justify-center rounded-lg bg-neutral-100 p-4 text-center text-sm text-neutral-500">
         Set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in .env.local to display the map.
       </div>
     );
@@ -247,14 +125,14 @@ export default function MapView({
 
   if (!isLoaded) {
     return (
-      <div className="flex h-full w-full items-center justify-center rounded-lg bg-neutral-100 text-sm text-neutral-500 dark:bg-neutral-800">
+      <div className="flex h-full w-full items-center justify-center rounded-lg bg-neutral-100 text-sm text-neutral-500">
         Loading map…
       </div>
     );
   }
 
   return (
-    <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={11} onLoad={onLoad}>
+    <GoogleMap mapContainerStyle={containerStyle} center={initialCenter} zoom={11} onLoad={onLoad}>
       {depot && (
         <Marker
           position={depot}
@@ -290,20 +168,11 @@ export default function MapView({
         <Polyline path={path} options={{ strokeColor: "#2563eb", strokeWeight: 4 }} />
       )}
 
-      {vehiclePos && (
-        <Marker
-          position={vehiclePos}
-          icon={{
-            path: window.google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-            scale: 5,
-            rotation: vehiclePos.heading ?? 0,
-            fillColor: "#f97316",
-            fillOpacity: 1,
-            strokeColor: "#7c2d12",
-            strokeWeight: 1,
-          }}
-        />
+      {legPath.length > 1 && (
+        <Polyline path={legPath} options={{ strokeColor: "#f97316", strokeWeight: 5, zIndex: 1 }} />
       )}
+
+      {vehiclePos && <CarMarker position={vehiclePos} />}
     </GoogleMap>
   );
 }

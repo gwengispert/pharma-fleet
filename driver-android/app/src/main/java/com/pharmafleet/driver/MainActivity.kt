@@ -21,7 +21,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.android.material.materialswitch.MaterialSwitch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var locationReporter: DriverLocationReporter
 
     private lateinit var driverSpinner: Spinner
-    private lateinit var onlineSwitch: SwitchMaterial
+    private lateinit var onlineSwitch: MaterialSwitch
     private lateinit var statusText: TextView
     private lateinit var stopsContainer: LinearLayout
     private lateinit var driverAdapter: ArrayAdapter<String>
@@ -319,7 +319,7 @@ class MainActivity : AppCompatActivity() {
                 TextView(this).apply {
                     text = stop.customerName
                     textSize = 14f
-                    setTypeface(typeface, android.graphics.Typeface.BOLD)
+                    typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
                     setTextColor(ContextCompat.getColor(this@MainActivity, R.color.foreground))
                 },
             )
@@ -339,7 +339,7 @@ class MainActivity : AppCompatActivity() {
                     TextView(this).apply {
                         text = "Delivered"
                         textSize = 12f
-                        setTypeface(typeface, android.graphics.Typeface.BOLD)
+                        typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
                         setTextColor(ContextCompat.getColor(this@MainActivity, R.color.success_pill_text))
                         background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_pill_delivered)
                         setPadding(dp(10), dp(4), dp(10), dp(4))
@@ -349,9 +349,7 @@ class MainActivity : AppCompatActivity() {
                     MaterialButton(this).apply {
                         text = "Mark delivered"
                         textSize = 12f
-                        isAllCaps = false
-                        cornerRadius = dp(6)
-                        setPadding(dp(4), 0, dp(4), 0)
+                        setPadding(dp(14), 0, dp(14), 0)
                         icon = ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_check)
                         iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
                         setOnClickListener { markDelivered(stop.id) }
@@ -380,8 +378,6 @@ class MainActivity : AppCompatActivity() {
                     MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
                         text = "Open map"
                         textSize = 12f
-                        isAllCaps = false
-                        cornerRadius = dp(6)
                         icon = ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_map_pin)
                         iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
                         setOnClickListener { openMap(stop) }
@@ -401,7 +397,7 @@ class MainActivity : AppCompatActivity() {
         val mappable = currentStops.filter { it.lat != null && it.lng != null }
         val index = mappable.indexOfFirst { it.id == delivery.id }
         if (index < 0) return
-        startActivity(MapActivity.intent(this, mappable, index))
+        startActivity(MapActivity.intent(this, mappable, index, selectedDriver?.vehicleId))
     }
 
     private fun markDelivered(deliveryId: String) {

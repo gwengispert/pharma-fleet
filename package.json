@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sim:capture": "node scripts/capture-simulation.mjs",
+    "sim:capture-directions": "node scripts/capture-directions.mjs"
   },
   "dependencies": {
     "@react-google-maps/api": "^2.20.8",

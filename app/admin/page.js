@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/apiClient";
-import { decodePolyline } from "@/lib/polyline";
 import VehicleForm from "@/components/VehicleForm";
 import { VEHICLE_TYPES } from "@/lib/constants";
 import FieldLabel from "@/components/FieldLabel";
@@ -24,12 +23,14 @@ import DriverForm from "@/components/DriverForm";
 import DeliveryForm from "@/components/DeliveryForm";
 import DeliveryTable from "@/components/DeliveryTable";
 import RouteSummary from "@/components/RouteSummary";
-import MapView from "@/components/MapView";
+import FleetLiveMap from "@/components/FleetLiveMap";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import Logo from "@/components/Logo";
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const TABS = ["Settings", "Vehicles", "Drivers", "Deliveries", "Assign & Optimize", "Data"];
+// Sections with wide tables open the side panel wide by default.
+const WIDE_TABS = new Set(["Vehicles", "Drivers", "Deliveries", "Assign & Optimize"]);
 const TAB_ICONS = {
   Settings: SettingsIcon,
   Vehicles: TruckIcon,
@@ -41,6 +42,10 @@ const TAB_ICONS = {
 
 export default function AdminPage() {
   const [tab, setTab] = useState(TABS[0]);
+  // null = the tab's default width (WIDE_TABS); true/false = the admin's
+  // choice via the panel toggle, until they switch tabs.
+  const [wideOverride, setWideOverride] = useState(null);
+  const wide = wideOverride ?? WIDE_TABS.has(tab);
   const [settings, setSettings] = useState(null);
   const [vehicles, setVehicles] = useState([]);
   const [drivers, setDrivers] = useState([]);
@@ -76,180 +81,214 @@ export default function AdminPage() {
   const driversById = useMemo(() => Object.fromEntries(drivers.map((d) => [d.id, d])), [drivers]);
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-6 py-10">
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col gap-1">
-          <Logo size="sm" />
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Admin Dashboard</h1>
-            <p className="text-sm text-neutral-500">Vehicles, drivers, deliveries, and route optimization</p>
+    <main className="flex w-full flex-1 flex-col lg:h-dvh lg:flex-none lg:flex-row lg:overflow-hidden">
+      <aside
+        className={`flex w-full flex-none flex-col border-neutral-200 bg-white lg:h-full lg:border-r ${
+          wide ? "lg:w-[min(60rem,62vw)]" : "lg:w-[26rem]"
+        }`}
+      >
+        <header className="flex flex-col gap-3 border-b border-neutral-300 px-5 pt-4 pb-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Logo size="sm" withText={false} />
+              <h1 className="text-xl whitespace-nowrap text-neutral-700">
+                Pharma Fleet <span className="text-neutral-500">Admin</span>
+              </h1>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setWideOverride(!wide)}
+                className="hidden rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap text-primary-700 hover:bg-primary-50 lg:block"
+                title={wide ? "Narrow the panel to see more map" : "Widen the panel for tables"}
+              >
+                {wide ? "Narrow panel" : "Widen panel"}
+              </button>
+              <Link href="/" className="rounded-full px-3 py-1.5 text-sm font-medium text-primary-700 hover:bg-primary-50">
+                Home
+              </Link>
+            </div>
           </div>
+
+          <nav className="flex flex-wrap gap-1.5">
+            {TABS.map((t) => {
+              const Icon = TAB_ICONS[t];
+              return (
+                <button
+                  key={t}
+                  onClick={() => {
+                    setTab(t);
+                    setWideOverride(null);
+                  }}
+                  className={`flex h-8 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-colors ${
+                    tab === t
+                      ? "border-transparent bg-primary-50 text-primary-800"
+                      : "border-neutral-300 text-neutral-700 hover:bg-neutral-100"
+                  }`}
+                >
+                  <Icon className="h-4 w-4 flex-none" />
+                  {t}
+                </button>
+              );
+            })}
+          </nav>
+        </header>
+
+        <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
+          {error && (
+            <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          {loading ? (
+            <p className="text-sm text-neutral-500">Loading…</p>
+          ) : (
+            <>
+              {tab === "Settings" && (
+                <SettingsPanel settings={settings} onSaved={setSettings} />
+              )}
+
+              {tab === "Vehicles" && (
+                <section className="flex flex-col gap-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <VehicleForm
+                      onCreate={async (data) => {
+                        const vehicle = await api.post("/api/vehicles", data);
+                        setVehicles((v) => [...v, vehicle]);
+                      }}
+                    />
+                    <CsvImportToggle
+                      description="Download a template, fill it in, and upload it back to create many vehicles at once."
+                      templateFilename="vehicles-template.csv"
+                      templateContent={VEHICLE_CSV_TEMPLATE}
+                      endpoint="/api/vehicles/import"
+                      resultNoun="vehicles"
+                      onImported={loadAll}
+                    />
+                  </div>
+                  <VehicleTable
+                    vehicles={vehicles}
+                    onUpdate={async (id, patch) => {
+                      const updated = await api.patch(`/api/vehicles/${id}`, patch);
+                      setVehicles((vs) => vs.map((v) => (v.id === id ? updated : v)));
+                    }}
+                    onDelete={async (id) => {
+                      await api.del(`/api/vehicles/${id}`);
+                      await loadAll();
+                    }}
+                  />
+                </section>
+              )}
+
+              {tab === "Drivers" && (
+                <section className="flex flex-col gap-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <DriverForm
+                      vehicles={vehicles.filter((v) => !drivers.some((d) => d.vehicleId === v.id))}
+                      onCreate={async (data) => {
+                        const driver = await api.post("/api/drivers", data);
+                        setDrivers((d) => [...d, driver]);
+                      }}
+                    />
+                    <CsvImportToggle
+                      description="Download a template, fill it in, and upload it back to create many drivers at once. The vehicleName column is matched against existing vehicle names."
+                      templateFilename="drivers-template.csv"
+                      templateContent={DRIVER_CSV_TEMPLATE}
+                      endpoint="/api/drivers/import"
+                      resultNoun="drivers"
+                      onImported={loadAll}
+                    />
+                  </div>
+                  <DriverTable
+                    drivers={drivers}
+                    vehicles={vehicles}
+                    vehiclesById={vehiclesById}
+                    onUpdate={async (id, patch) => {
+                      const updated = await api.patch(`/api/drivers/${id}`, patch);
+                      setDrivers((ds) => ds.map((d) => (d.id === id ? updated : d)));
+                    }}
+                    onDelete={async (id) => {
+                      await api.del(`/api/drivers/${id}`);
+                      await loadAll();
+                    }}
+                  />
+                </section>
+              )}
+
+              {tab === "Deliveries" && (
+                <section className="flex flex-col gap-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <DeliveryForm
+                      apiKey={GOOGLE_MAPS_API_KEY}
+                      onCreate={async (data) => {
+                        const delivery = await api.post("/api/deliveries", data);
+                        setDeliveries((d) => [...d, delivery]);
+                      }}
+                    />
+                    <CsvImportToggle
+                      description="Download a template, fill it in, and upload it back to create many deliveries at once. Addresses are geocoded automatically."
+                      templateFilename="deliveries-template.csv"
+                      templateContent={DELIVERY_CSV_TEMPLATE}
+                      endpoint="/api/deliveries/import"
+                      resultNoun="deliveries"
+                      onImported={loadAll}
+                    />
+                  </div>
+                  <DeliveryTable
+                    deliveries={deliveries}
+                    vehiclesById={vehiclesById}
+                    driversById={driversById}
+                    apiKey={GOOGLE_MAPS_API_KEY}
+                    onUpdate={async (id, patch) => {
+                      const updated = await api.patch(`/api/deliveries/${id}`, patch);
+                      setDeliveries((ds) => ds.map((d) => (d.id === id ? updated : d)));
+                    }}
+                    onDelete={async (id) => {
+                      await api.del(`/api/deliveries/${id}`);
+                      await loadAll();
+                    }}
+                  />
+                </section>
+              )}
+
+              {tab === "Assign & Optimize" && (
+                <AssignOptimizePanel
+                  vehicles={vehicles}
+                  deliveries={deliveries}
+                  vehiclesById={vehiclesById}
+                  driversById={driversById}
+                  routes={routes}
+                  settings={settings}
+                  onOptimized={loadAll}
+                />
+              )}
+
+              {tab === "Data" && <DataPanel onImported={loadAll} />}
+            </>
+          )}
         </div>
-        <Link href="/" className="text-sm text-neutral-500 hover:underline">
-          ← Home
-        </Link>
-      </div>
+      </aside>
 
-      {error && (
-        <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
-          {error}
-        </div>
-      )}
-
-      <nav className="flex flex-wrap gap-2 border-b border-neutral-200 pb-2 dark:border-neutral-800">
-        {TABS.map((t) => {
-          const Icon = TAB_ICONS[t];
-          return (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm ${
-                tab === t
-                  ? "bg-teal-700 text-white dark:bg-teal-500 dark:text-teal-950"
-                  : "text-neutral-500 hover:bg-teal-50 dark:hover:bg-neutral-900"
-              }`}
-            >
-              <Icon className="h-4 w-4 flex-none" />
-              {t}
-            </button>
-          );
-        })}
-      </nav>
-
-      {loading ? (
-        <p className="text-sm text-neutral-500">Loading…</p>
-      ) : (
-        <>
-          {tab === "Settings" && (
-            <SettingsPanel settings={settings} onSaved={setSettings} />
-          )}
-
-          {tab === "Vehicles" && (
-            <section className="flex flex-col gap-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <VehicleForm
-                  onCreate={async (data) => {
-                    const vehicle = await api.post("/api/vehicles", data);
-                    setVehicles((v) => [...v, vehicle]);
-                  }}
-                />
-                <CsvImportToggle
-                  description="Download a template, fill it in, and upload it back to create many vehicles at once."
-                  templateFilename="vehicles-template.csv"
-                  templateContent={VEHICLE_CSV_TEMPLATE}
-                  endpoint="/api/vehicles/import"
-                  resultNoun="vehicles"
-                  onImported={loadAll}
-                />
-              </div>
-              <VehicleTable
-                vehicles={vehicles}
-                onUpdate={async (id, patch) => {
-                  const updated = await api.patch(`/api/vehicles/${id}`, patch);
-                  setVehicles((vs) => vs.map((v) => (v.id === id ? updated : v)));
-                }}
-                onDelete={async (id) => {
-                  await api.del(`/api/vehicles/${id}`);
-                  await loadAll();
-                }}
-              />
-            </section>
-          )}
-
-          {tab === "Drivers" && (
-            <section className="flex flex-col gap-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <DriverForm
-                  vehicles={vehicles.filter((v) => !drivers.some((d) => d.vehicleId === v.id))}
-                  onCreate={async (data) => {
-                    const driver = await api.post("/api/drivers", data);
-                    setDrivers((d) => [...d, driver]);
-                  }}
-                />
-                <CsvImportToggle
-                  description="Download a template, fill it in, and upload it back to create many drivers at once. The vehicleName column is matched against existing vehicle names."
-                  templateFilename="drivers-template.csv"
-                  templateContent={DRIVER_CSV_TEMPLATE}
-                  endpoint="/api/drivers/import"
-                  resultNoun="drivers"
-                  onImported={loadAll}
-                />
-              </div>
-              <DriverTable
-                drivers={drivers}
-                vehicles={vehicles}
-                vehiclesById={vehiclesById}
-                onUpdate={async (id, patch) => {
-                  const updated = await api.patch(`/api/drivers/${id}`, patch);
-                  setDrivers((ds) => ds.map((d) => (d.id === id ? updated : d)));
-                }}
-                onDelete={async (id) => {
-                  await api.del(`/api/drivers/${id}`);
-                  await loadAll();
-                }}
-              />
-            </section>
-          )}
-
-          {tab === "Deliveries" && (
-            <section className="flex flex-col gap-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <DeliveryForm
-                  apiKey={GOOGLE_MAPS_API_KEY}
-                  onCreate={async (data) => {
-                    const delivery = await api.post("/api/deliveries", data);
-                    setDeliveries((d) => [...d, delivery]);
-                  }}
-                />
-                <CsvImportToggle
-                  description="Download a template, fill it in, and upload it back to create many deliveries at once. Addresses are geocoded automatically."
-                  templateFilename="deliveries-template.csv"
-                  templateContent={DELIVERY_CSV_TEMPLATE}
-                  endpoint="/api/deliveries/import"
-                  resultNoun="deliveries"
-                  onImported={loadAll}
-                />
-              </div>
-              <DeliveryTable
-                deliveries={deliveries}
-                vehiclesById={vehiclesById}
-                driversById={driversById}
-                apiKey={GOOGLE_MAPS_API_KEY}
-                onUpdate={async (id, patch) => {
-                  const updated = await api.patch(`/api/deliveries/${id}`, patch);
-                  setDeliveries((ds) => ds.map((d) => (d.id === id ? updated : d)));
-                }}
-                onDelete={async (id) => {
-                  await api.del(`/api/deliveries/${id}`);
-                  await loadAll();
-                }}
-              />
-            </section>
-          )}
-
-          {tab === "Assign & Optimize" && (
-            <AssignOptimizePanel
-              vehicles={vehicles}
-              deliveries={deliveries}
-              vehiclesById={vehiclesById}
-              driversById={driversById}
-              routes={routes}
-              settings={settings}
-              onOptimized={loadAll}
-            />
-          )}
-
-          {tab === "Data" && <DataPanel onImported={loadAll} />}
-        </>
-      )}
+      <section className="h-[70vh] min-w-0 flex-1 lg:h-full">
+        {!loading && (
+          <FleetLiveMap
+            apiKey={GOOGLE_MAPS_API_KEY}
+            settings={settings}
+            drivers={drivers}
+            vehiclesById={vehiclesById}
+            deliveries={deliveries}
+            routes={routes}
+          />
+        )}
+      </section>
     </main>
   );
 }
 
 function Section({ title, children }) {
   return (
-    <section className="flex flex-col gap-3 rounded-xl border border-neutral-200 border-t-2 border-t-teal-600 p-5 dark:border-neutral-800 dark:border-t-teal-600">
-      <h2 className="font-medium">{title}</h2>
+    <section className="flex flex-col gap-3 rounded-lg border border-neutral-300 bg-white p-5">
+      <h2 className="text-base font-medium text-neutral-800">{title}</h2>
       {children}
     </section>
   );
@@ -314,7 +353,7 @@ function SettingsPanel({ settings, onSaved }) {
             countryRestriction="ph"
             coords={depotCoords}
             placeholder="123 Rizal Ave, Makati City, Metro Manila"
-            className="w-full max-w-lg rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="w-full max-w-lg rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
           />
           {settings?.depotLat != null && (
             <span className="text-xs text-neutral-400">
@@ -329,7 +368,7 @@ function SettingsPanel({ settings, onSaved }) {
             step="0.01"
             value={fuelCostPerKm}
             onChange={(e) => setFuelCostPerKm(e.target.value)}
-            className="w-32 rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="w-32 rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -338,7 +377,7 @@ function SettingsPanel({ settings, onSaved }) {
             type="date"
             value={dispatchDate}
             onChange={(e) => setDispatchDate(e.target.value)}
-            className="w-40 rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="w-40 rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
           />
           <span className="text-xs text-neutral-400">
             The day every delivery&apos;s arrival window (earliest/latest arrival) is resolved against.
@@ -348,7 +387,7 @@ function SettingsPanel({ settings, onSaved }) {
           <button
             type="submit"
             disabled={saving}
-            className="rounded-md bg-teal-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-teal-800 disabled:opacity-50 dark:bg-teal-500 dark:text-teal-950 dark:hover:bg-teal-400"
+            className="rounded-full bg-primary-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-primary-800 disabled:opacity-50"
           >
             {saving ? "Saving…" : "Save settings"}
           </button>
@@ -367,7 +406,7 @@ function VehicleTable({ vehicles, onUpdate, onDelete }) {
     <div className="overflow-x-auto">
       <table className="w-full min-w-[560px] text-left text-sm">
         <thead>
-          <tr className="border-b border-neutral-200 text-xs uppercase text-neutral-500 dark:border-neutral-800">
+          <tr className="border-b border-neutral-200 text-xs uppercase text-neutral-500">
             <th className="py-2 pr-3">Name</th>
             <th className="py-2 pr-3">Type</th>
             <th className="py-2 pr-3">Capacity</th>
@@ -388,7 +427,7 @@ function VehicleTable({ vehicles, onUpdate, onDelete }) {
                 }}
               />
             ) : (
-              <tr key={v.id} className="border-b border-neutral-100 dark:border-neutral-900">
+              <tr key={v.id} className="border-b border-neutral-100">
                 <td className="py-2 pr-3 font-medium">
                   {v.name}
                   {v.refrigerated && (
@@ -403,7 +442,7 @@ function VehicleTable({ vehicles, onUpdate, onDelete }) {
                 <td className="py-2 text-right whitespace-nowrap">
                   <button
                     onClick={() => setEditingId(v.id)}
-                    className="mr-3 text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+                    className="mr-3 text-xs text-neutral-400 hover:text-neutral-700"
                   >
                     edit
                   </button>
@@ -446,12 +485,12 @@ function VehicleEditRow({ vehicle, onSave, onCancel }) {
   }
 
   return (
-    <tr className="border-b border-neutral-100 dark:border-neutral-900">
+    <tr className="border-b border-neutral-100">
       <td className="py-2 pr-3">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="w-full rounded-md border border-neutral-300 px-2 py-1 text-sm"
         />
       </td>
       <td className="py-2 pr-3">
@@ -459,7 +498,7 @@ function VehicleEditRow({ vehicle, onSave, onCancel }) {
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
           >
             {VEHICLE_TYPES.map((t) => (
               <option key={t} value={t}>
@@ -482,7 +521,7 @@ function VehicleEditRow({ vehicle, onSave, onCancel }) {
           type="number"
           value={capacityKg}
           onChange={(e) => setCapacityKg(e.target.value)}
-          className="w-20 rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="w-20 rounded-md border border-neutral-300 px-2 py-1 text-sm"
         />
       </td>
       <td className="py-2 pr-3 text-neutral-500">{vehicle.status}</td>
@@ -490,11 +529,11 @@ function VehicleEditRow({ vehicle, onSave, onCancel }) {
         <button
           onClick={handleSave}
           disabled={saving || !name.trim()}
-          className="mr-3 text-xs font-medium text-neutral-900 hover:underline disabled:opacity-50 dark:text-white"
+          className="mr-3 text-xs font-medium text-neutral-900 hover:underline disabled:opacity-50"
         >
           {saving ? "Saving…" : "save"}
         </button>
-        <button onClick={onCancel} className="text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200">
+        <button onClick={onCancel} className="text-xs text-neutral-400 hover:text-neutral-700">
           cancel
         </button>
         {error && <div className="text-xs text-red-600">{error}</div>}
@@ -511,7 +550,7 @@ function DriverTable({ drivers, vehicles, vehiclesById, onUpdate, onDelete }) {
     <div className="overflow-x-auto">
       <table className="w-full min-w-[560px] text-left text-sm">
         <thead>
-          <tr className="border-b border-neutral-200 text-xs uppercase text-neutral-500 dark:border-neutral-800">
+          <tr className="border-b border-neutral-200 text-xs uppercase text-neutral-500">
             <th className="py-2 pr-3">Name</th>
             <th className="py-2 pr-3">Phone</th>
             <th className="py-2 pr-3">Vehicle</th>
@@ -534,14 +573,14 @@ function DriverTable({ drivers, vehicles, vehiclesById, onUpdate, onDelete }) {
                 }}
               />
             ) : (
-              <tr key={d.id} className="border-b border-neutral-100 dark:border-neutral-900">
+              <tr key={d.id} className="border-b border-neutral-100">
                 <td className="py-2 pr-3 font-medium">{d.name}</td>
                 <td className="py-2 pr-3 text-neutral-500">{d.phone || "—"}</td>
                 <td className="py-2 pr-3 text-neutral-500">{vehiclesById[d.vehicleId]?.name || "—"}</td>
                 <td className="py-2 text-right whitespace-nowrap">
                   <button
                     onClick={() => setEditingId(d.id)}
-                    className="mr-3 text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+                    className="mr-3 text-xs text-neutral-400 hover:text-neutral-700"
                   >
                     edit
                   </button>
@@ -578,26 +617,26 @@ function DriverEditRow({ driver, vehicles, onSave, onCancel }) {
   }
 
   return (
-    <tr className="border-b border-neutral-100 dark:border-neutral-900">
+    <tr className="border-b border-neutral-100">
       <td className="py-2 pr-3">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="w-full rounded-md border border-neutral-300 px-2 py-1 text-sm"
         />
       </td>
       <td className="py-2 pr-3">
         <input
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="w-full rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="w-full rounded-md border border-neutral-300 px-2 py-1 text-sm"
         />
       </td>
       <td className="py-2 pr-3">
         <select
           value={vehicleId}
           onChange={(e) => setVehicleId(e.target.value)}
-          className="rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
         >
           <option value="">Unassigned</option>
           {vehicles.map((v) => (
@@ -611,11 +650,11 @@ function DriverEditRow({ driver, vehicles, onSave, onCancel }) {
         <button
           onClick={handleSave}
           disabled={saving || !name.trim()}
-          className="mr-3 text-xs font-medium text-neutral-900 hover:underline disabled:opacity-50 dark:text-white"
+          className="mr-3 text-xs font-medium text-neutral-900 hover:underline disabled:opacity-50"
         >
           {saving ? "Saving…" : "save"}
         </button>
-        <button onClick={onCancel} className="text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200">
+        <button onClick={onCancel} className="text-xs text-neutral-400 hover:text-neutral-700">
           cancel
         </button>
         {error && <div className="text-xs text-red-600">{error}</div>}
@@ -714,13 +753,6 @@ function AssignOptimizePanel({
     );
   }
 
-  const routeStops = route
-    ? route.deliveryIds
-        .map((id) => deliveriesById[id])
-        .filter(Boolean)
-        .map((d) => ({ ...d }))
-    : [];
-  const path = route ? decodePolyline(route.polyline) : [];
   const assignedCount = deliveries.filter((d) => d.status !== "pending").length;
 
   return (
@@ -735,7 +767,7 @@ function AssignOptimizePanel({
           <button
             onClick={handleAutoAssign}
             disabled={autoAssigning || pendingDeliveries.length === 0 || !settings?.dispatchDate}
-            className="rounded-md bg-teal-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-teal-800 disabled:opacity-50 dark:bg-teal-500 dark:text-teal-950 dark:hover:bg-teal-400"
+            className="rounded-full bg-primary-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-primary-800 disabled:opacity-50"
           >
             {autoAssigning ? "Assigning…" : "Auto-assign & optimize routes"}
           </button>
@@ -747,7 +779,7 @@ function AssignOptimizePanel({
           <button
             onClick={handleResetAll}
             disabled={resetting || assignedCount === 0}
-            className="ml-2 inline-flex items-center gap-1.5 rounded-md border border-neutral-300 px-4 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+            className="ml-2 inline-flex items-center gap-1.5 rounded-md border border-neutral-300 px-4 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50"
           >
             <UndoIcon className="h-4 w-4" />
             {resetting ? "Resetting…" : "Reset all assignments"}
@@ -756,7 +788,7 @@ function AssignOptimizePanel({
           {resetError && <span className="ml-3 text-sm text-red-600">{resetError}</span>}
         </div>
         {autoAssignResult && (
-          <div className="text-sm text-neutral-600 dark:text-neutral-300">
+          <div className="text-sm text-neutral-600">
             <p>
               Assigned {autoAssignResult.deliveryCount} deliveries across {autoAssignResult.vehicleCount}{" "}
               vehicle{autoAssignResult.vehicleCount === 1 ? "" : "s"}.
@@ -780,7 +812,7 @@ function AssignOptimizePanel({
           <select
             value={vehicleId}
             onChange={(e) => setVehicleId(e.target.value)}
-            className="w-64 rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="w-64 rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
           >
             {vehicles.map((v) => (
               <option key={v.id} value={v.id}>
@@ -811,7 +843,7 @@ function AssignOptimizePanel({
           <button
             onClick={handleOptimize}
             disabled={optimizing || selectedIds.size === 0}
-            className="rounded-md bg-teal-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-teal-800 disabled:opacity-50 dark:bg-teal-500 dark:text-teal-950 dark:hover:bg-teal-400"
+            className="rounded-full bg-primary-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-primary-800 disabled:opacity-50"
           >
             {optimizing ? "Optimizing…" : `Optimize route (${selectedIds.size} selected)`}
           </button>
@@ -822,14 +854,7 @@ function AssignOptimizePanel({
       {route && (
         <Section title={`Route for ${vehiclesById[vehicleId]?.name}`}>
           <RouteSummary route={route} deliveriesById={deliveriesById} />
-          <div className="h-96 w-full overflow-hidden rounded-lg">
-            <MapView
-              apiKey={GOOGLE_MAPS_API_KEY}
-              depot={{ lat: settings.depotLat, lng: settings.depotLng }}
-              stops={routeStops}
-              path={path}
-            />
-          </div>
+          <p className="text-xs text-neutral-500">Shown on the map with the rest of the fleet.</p>
         </Section>
       )}
     </div>
@@ -890,7 +915,7 @@ function CsvImportBlock({ templateFilename, templateContent, endpoint, resultNou
         <button
           type="button"
           onClick={() => downloadTextFile(templateFilename, templateContent)}
-          className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+          className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50"
         >
           Download template
         </button>
@@ -898,7 +923,7 @@ function CsvImportBlock({ templateFilename, templateContent, endpoint, resultNou
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+          className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50 disabled:opacity-50"
         >
           {uploading ? "Uploading…" : "Upload CSV"}
         </button>
@@ -943,13 +968,13 @@ function CsvImportToggle({ description, templateFilename, templateContent, endpo
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+        className="flex items-center gap-1.5 rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50"
       >
         <UploadIcon className="h-3.5 w-3.5" />
         Bulk import CSV
       </button>
       {open && (
-        <div className="absolute right-0 z-10 mt-2 w-72 rounded-lg border border-neutral-200 bg-white p-3 shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+        <div className="absolute right-0 z-10 mt-2 w-72 rounded-lg border border-neutral-200 bg-white p-3 shadow-lg">
           <p className="mb-2 text-xs text-neutral-500">{description}</p>
           <CsvImportBlock
             templateFilename={templateFilename}
@@ -997,13 +1022,13 @@ function DataPanel({ onImported }) {
       <div className="flex flex-wrap items-center gap-3">
         <a
           href="/api/state/export"
-          className="rounded-md border border-neutral-300 px-4 py-1.5 text-sm font-medium hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+          className="rounded-md border border-neutral-300 px-4 py-1.5 text-sm font-medium hover:bg-neutral-50"
         >
           Download state (JSON)
         </a>
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="rounded-md border border-neutral-300 px-4 py-1.5 text-sm font-medium hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+          className="rounded-md border border-neutral-300 px-4 py-1.5 text-sm font-medium hover:bg-neutral-50"
         >
           Upload state (JSON)
         </button>

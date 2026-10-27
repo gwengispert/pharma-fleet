@@ -71,7 +71,7 @@ export default function DeliveryForm({ apiKey, onCreate }) {
             value={customerName}
             onChange={(e) => setCustomerName(e.target.value)}
             placeholder="Riverside Pharmacy"
-            className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
           />
         </div>
         <div className="flex flex-[2] min-w-[280px] flex-col gap-1">
@@ -84,7 +84,7 @@ export default function DeliveryForm({ apiKey, onCreate }) {
             countryRestriction="ph"
             coords={coords}
             placeholder="123 Rizal Ave, Makati City, Metro Manila"
-            className="w-full rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="w-full rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
           />
         </div>
       </div>
@@ -97,7 +97,7 @@ export default function DeliveryForm({ apiKey, onCreate }) {
             value={weightKg}
             onChange={(e) => setWeightKg(e.target.value)}
             placeholder="optional"
-            className="w-24 rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="w-24 rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -106,7 +106,7 @@ export default function DeliveryForm({ apiKey, onCreate }) {
             type="time"
             value={windowStart}
             onChange={(e) => setWindowStart(e.target.value)}
-            className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -115,7 +115,7 @@ export default function DeliveryForm({ apiKey, onCreate }) {
             type="time"
             value={windowEnd}
             onChange={(e) => setWindowEnd(e.target.value)}
-            className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
           />
         </div>
         <label className="flex items-center gap-1.5 pb-1.5 text-sm">
@@ -133,13 +133,13 @@ export default function DeliveryForm({ apiKey, onCreate }) {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="optional"
-            className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
           />
         </div>
         <button
           type="submit"
           disabled={submitting || !customerName.trim() || !address.trim()}
-          className="rounded-md bg-teal-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-teal-800 disabled:opacity-50 dark:bg-teal-500 dark:text-teal-950 dark:hover:bg-teal-400"
+          className="rounded-full bg-primary-700 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-primary-800 disabled:opacity-50"
         >
           {submitting ? "Adding…" : "Add delivery"}
         </button>

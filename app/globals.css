@@ -1,26 +1,64 @@
 @import "tailwindcss";
 
+/* Light-only, Google-style theme: Roboto, Google blue as the primary color
+   and Google's grey ramp in place of Tailwind's neutral scale, so every
+   `neutral-*` / `primary-*` utility in the app picks these up. */
+
 :root {
-  --background: #f7fafa;
-  --foreground: #171717;
+  --background: #ffffff;
+  --foreground: #202124;
+  color-scheme: light;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-roboto);
+  --font-mono: var(--font-roboto-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0d0d;
-    --foreground: #ededed;
+@theme {
+  --color-primary-50: #e8f0fe;
+  --color-primary-100: #d2e3fc;
+  --color-primary-200: #aecbfa;
+  --color-primary-300: #8ab4f8;
+  --color-primary-400: #669df6;
+  --color-primary-500: #4285f4;
+  --color-primary-600: #1b6ef3;
+  --color-primary-700: #1a73e8;
+  --color-primary-800: #1765cc;
+  --color-primary-900: #185abc;
+  --color-primary-950: #174ea6;
+
+  --color-neutral-50: #f8f9fa;
+  --color-neutral-100: #f1f3f4;
+  --color-neutral-200: #e8eaed;
+  --color-neutral-300: #dadce0;
+  --color-neutral-400: #9aa0a6;
+  --color-neutral-500: #5f6368;
+  --color-neutral-600: #4d5156;
+  --color-neutral-700: #3c4043;
+  --color-neutral-800: #202124;
+  --color-neutral-900: #202124;
+  --color-neutral-950: #171717;
+
+  /* Google Material elevation levels 1 and 2. */
+  --shadow-g1: 0 1px 2px 0 rgb(60 64 67 / 0.3), 0 1px 3px 1px rgb(60 64 67 / 0.15);
+  --shadow-g2: 0 1px 2px 0 rgb(60 64 67 / 0.3), 0 2px 6px 2px rgb(60 64 67 / 0.15);
+}
+
+/* Google-style focus: a blue outline on form fields. */
+@layer base {
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid var(--color-primary-700);
+    outline-offset: -1px;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-roboto), Roboto, Arial, sans-serif;
 }

@@ -1,0 +1,440 @@
+{
+  "14.45535,121.00715>14.36378,121.05631": {
+    "durationSeconds": 2031,
+    "steps": [
+      {
+        "instruction": "Head north on El Grande Ave toward Aguirre Ave",
+        "maneuver": null,
+        "distanceMeters": 1404,
+        "polyline": "yhfwAifqaVmBQyASaBIg@Cg@Ec@Ca@AsCI_AEu@Eu@Gg@E_AUkA[iAW_AWs@SwGwAiCk@}@O[AUAyAD}BLi@A_@?]CUG_@K]MQSGEW[{@aAMMKGSI_@K]CyAEIAGCGE"
+      },
+      {
+        "instruction": "Continue onto N. Lopez Ave",
+        "maneuver": null,
+        "distanceMeters": 229,
+        "polyline": "_thwAixqaVCCAAACAA?AAA?A?AACCMCICKAICICKEIa@y@Uc@GKKQGKEIY]e@_@WSMI"
+      },
+      {
+        "instruction": "Turn right onto Dr Arcadio Santos Ave/Parañaque - Sucat Rd/Route 63",
+        "maneuver": "turn-right",
+        "distanceMeters": 3906,
+        "polyline": "i{hwA}braV^w@^w@|@cCj@qAPa@Xu@HUjAmDn@{An@sARk@BGPc@Lc@BGL_@@CRm@lAuDHQz@iBd@wAtAqDVu@FOFML[FSBEJ[Pc@BC@CNa@HORe@FQZu@rAgDPg@`@oATi@Rk@Ri@vAyDBITk@@Er@gBJU|@cChAqCpAcDPa@To@\\}@n@uAfAcCr@_BXm@N_@FMBCP_@P_@R_@P_@vAuCv@eB`A{BHSFMfA}Bf@cA`@aALWBIBGFMBGBGN]Re@d@oARg@ZmAx@iD@KDQFa@z@iFDUb@yCRqABMHc@Hc@Hc@RwAl@sCNs@b@sBJm@j@uCRw@@OXoADQDQT}@"
+      },
+      {
+        "instruction": "Turn right at Top Brands to merge onto South Luzon Expy/Route 1/AH26/R-3",
+        "maneuver": "ramp-right",
+        "distanceMeters": 9577,
+        "polyline": "s_fwA}oxaVFa@L?`@Cl@Kx@Or@Of@INC\\Ch@EPA^O|E@pYClEBfEHvGMh@An@ArDA|AAT@p@?L?X?H?bEBbDAtAA|A?pBAfBAjF?nCCd@?jAAv@?z@?hB?~@?p@?t@?h@?d@Alb@?jA?xBApCAbB?z@?Z?lAAvC?vDBbA@pCAB?V?X?pDAp@?\\?V?T?`@?b@?b@?`@?b@AtE?|B?n@B~@BdAFpAP`@FdAVl@NpAf@bBx@D@rDnBZPjH~DpDdBPJdEfBfBp@bBn@xCbAfGhBXH`B`@j@NbCh@LBXFr@NhARv@Pj@JfANtBVhBRfBPl@F`@B`AHd@Bj@Fd@Bz@DhFVtAFxFHnED|@AxBAxHQdBAhCQzCSr@IXCt@Ib@EHAfGm@t@IdBWNClD[bAK`BShBQpAMhAK\\Cb@G`Ea@j@GZCb@EF?HAFALAb@GnBQzAQtC[hCSfFg@|BMvBW|BYnAKDAnC[x@KbBOhBS~BUx@IhAMvFm@VCb@Eb@Cb@E`@E\\E`@E`@C`@E`@E@?b@ETCNCd@Eb@E"
+      },
+      {
+        "instruction": "Take the exit toward San Pedro",
+        "maneuver": "ramp-right",
+        "distanceMeters": 191,
+        "polyline": "}puvA}cxaVRDN@Z@Z@VDRFRHLHDBVNZLB@JBNBD?z@?"
+      },
+      {
+        "instruction": "Continue onto San Antonio Dr",
+        "maneuver": null,
+        "distanceMeters": 290,
+        "polyline": "wfuvAcaxaVbCAl@AzEEJA@AB?FAFCDCFCRMTQJO"
+      },
+      {
+        "instruction": "Turn left onto Magsaysay Rd",
+        "maneuver": "turn-left",
+        "distanceMeters": 1094,
+        "polyline": "cwtvAocxaVSYWUWSaCmAw@a@y@c@KGIGIIMSIOKWGWE[AY@M@I@MFOFMVa@t@kADEFINWFMFSFO@QBW@_@?[C_@KqAS{BIaAEc@?ASmAOu@YeAU}@M_@M[Q[QYQSUUYSYUe@a@QSGGEEEKAAEGAEACCG"
+      },
+      {
+        "instruction": "Turn right onto A Mabini St",
+        "maneuver": "turn-right",
+        "distanceMeters": 775,
+        "polyline": "mjuvAmwyaVlBeCrAcBJQT[p@_AJMj@u@R[LQRU`@i@`@e@HMV[t@{@RUNMPQLMDERYR[T[T_@j@_Ah@u@f@u@h@u@T]"
+      },
+      {
+        "instruction": "Turn right onto San Vicente Rd",
+        "maneuver": "turn-right",
+        "distanceMeters": 37,
+        "polyline": "qntvA_zzaVXZPT"
+      }
+    ]
+  },
+  "14.36378,121.05631>14.36443,121.06192": {
+    "durationSeconds": 273,
+    "steps": [
+      {
+        "instruction": "Head northeast on San Vicente Rd toward A Mabini St",
+        "maneuver": null,
+        "distanceMeters": 37,
+        "polyline": "emtvAmxzaVQUY["
+      },
+      {
+        "instruction": "Turn right after Dina's (on the left)",
+        "maneuver": "turn-right",
+        "distanceMeters": 53,
+        "polyline": "qntvA_zzaVLQl@{@"
+      },
+      {
+        "instruction": "Turn left onto J Luna St",
+        "maneuver": "turn-left",
+        "distanceMeters": 631,
+        "polyline": "ultvAm|zaVe@uAM]CKUu@I[AAa@sAMa@IUGQKQSYk@e@QMaAi@AAiBw@[QQKGEOKMKQSSY[k@Sg@Yq@Oi@Iy@"
+      },
+      {
+        "instruction": "Turn right onto San Roque St",
+        "maneuver": "turn-right",
+        "distanceMeters": 293,
+        "polyline": "{`uvAwx{aV|AQl@GNANCB?RCVCJAB?RCrAMhAMfBW"
+      }
+    ]
+  },
+  "14.36443,121.06192>14.19430,121.16029": {
+    "durationSeconds": 2314,
+    "steps": [
+      {
+        "instruction": "Head north on San Roque St",
+        "maneuver": null,
+        "distanceMeters": 293,
+        "polyline": "uptvAy{{aVgBViALsALSBC?K@WBSBC?OBO@m@F}AP"
+      },
+      {
+        "instruction": "Turn left onto J Luna St",
+        "maneuver": "turn-left",
+        "distanceMeters": 631,
+        "polyline": "{`uvAwx{aVHx@Nh@Xp@Rf@Zj@RXPRLJNJFDPJZPhBv@@@`Ah@PLj@d@RXJPFPHTL`@`@rA@@HZTt@BJL\\d@tA"
+      },
+      {
+        "instruction": "Turn right onto A Mabini St",
+        "maneuver": "turn-right",
+        "distanceMeters": 829,
+        "polyline": "ultvAm|zaVm@z@MPU\\i@t@g@t@i@t@k@~@U^UZSZSXEDMLQPOLSTu@z@WZILa@d@a@h@STMPSZk@t@KLq@~@UZKPsAbBmBdC"
+      },
+      {
+        "instruction": "Turn left onto Magsaysay Rd",
+        "maneuver": "turn-left",
+        "distanceMeters": 1094,
+        "polyline": "mjuvAmwyaVBF@B@DDF@@DJDDFFPRd@`@XTXRTTPRPXPZLZL^T|@XdANt@RlA?@Db@H`ARzBJpAB^?ZA^CVAPGNGRGLOVGHEDu@jAW`@GLGNALAHAL@XDZFVJVHNLRHHHFJFx@b@v@`@`ClAVRVTRX"
+      },
+      {
+        "instruction": "Turn right onto San Antonio Dr",
+        "maneuver": "turn-right",
+        "distanceMeters": 432,
+        "polyline": "cwtvAocxaVKNUPSLGBEBGBG@C?A@K@{EDm@@cC@eAUGCKEGECECCAEAI?G@E@E@EHKLMFEh@["
+      },
+      {
+        "instruction": "Merge onto Maharlika Hwy/Pan-Philippine Hwy/Route 1/R-3",
+        "maneuver": "merge",
+        "distanceMeters": 22375,
+        "polyline": "uguvAyexaVpFk@z@IlE_@d@G`Go@TCdKaALCTAlBShCUb@E`CWPCj@Ex@InD_@bFg@b@Eb@Ej@GdGm@jBQzBO`DYlCWr@IfBSlBSzASfBY|@OdAURE^IfBa@|Bq@xAe@dBm@NG~B{@bDqANG@A`@Q`DmA~@a@\\MDCrBw@bBq@dAa@RIPGLGNG\\M`@O^O^O^O^O^O^O^O`@O^O^O^O\\O@?^O^O`@O^O^M^O`@O^O^O^O^O`@M^O^O^O`@ONGnRqHRIpEcBbCaAfCeA~B{@v@[~Ao@`Bq@v@]z@_@v@a@r@]\\SbAi@xA{@fAs@j@]b@[^Yj@e@hA_An@g@n@i@pBaBbCsBNMNKdBsAbDcCr@k@f@]x@u@jBiBbBwA`@[TUPMhA_A`A_ATQrAgAzAqAlC}B|AoA`Ay@|AqAhCwBpAgAx@q@JKLKbAw@nEsDnAeAhVeSXWZWZWZWZWXWZWZW@AXUXWZWZWZWXWZWZWZWXWZUZWZWXWZWZWZWXWZWZWXWZWZWZWXWZWZWZWXWZW@AXUZWZWXWZWZWZWXWZWZWLKzBkBjB{AnAeADEx@m@n@k@n@c@~AgAl@a@j@[p@c@d@WzAw@`Bu@`Bu@xAo@|@]dCeAv@_@bDmARKTI~EoBlAg@ZMBAzF_CpBw@ZMjAg@pIiDf@Sf@SNG~Am@~DeBXKzDaBvGmCdCy@\\M^QbAc@x@[tEoBRI^O^Q^O^O^O^O`@Q^O^O^O^Q^O^O^O`@O^Q^O^O^O^Q^OLGPG`@O^OTIHE^O^OBA`EaB^O~Ao@`EaB~Aq@bIcDfBs@xB}@fFoBvAk@xIqDJEZMBA~CoApCiApBy@|D_B^Q~@_@\\MfNwFjIgD`DqAtDuAp@YtEqB`CaA^O^O^O`@O^Q^O^O^O^O^O`@Q^O^O^O^O^O`@Q^O^O^O^OJEfKgE`@O^O^OVMdAa@xCoAlBy@zBcAZOLEPI|Aw@^QJEzAw@lBaAhBaAzAw@pAo@~BiAr@_@pBkAlFqCtFsCxDoBbEyBlE_CpBcA|EeCPIVGBAXOBCJMBA@ALINI`CsA`HsDrAo@`Ag@pBgApBeAfAk@ZQbAi@bDeBrCyAvC{ArAs@~BmAr@_@jAm@zF{CzAw@`CmAvFyC^S\\S\\Q^S\\S^Q\\SZQ@A^Q\\S^Q\\S^Q\\Q^S\\Q^S\\QNILI^Q\\S^S\\Q\\S^SVMnAq@^OPIJG^SJGPK\\S\\S\\S^S\\S\\S\\SLIbDaBrCmA^QXMxAw@|GqDbOeITMrEyBBCdAe@@A\\Q^QJGXMDC\\S`IkExC}ArJaF|@e@|@e@\\Q^S\\QnBeAxEaCjDqBrH{DxGkDbB}@hM{GtH{Dl@_@NKfAk@|Ay@zA{@"
+      },
+      {
+        "instruction": "Take exit 50 toward Calamba",
+        "maneuver": "ramp-right",
+        "distanceMeters": 268,
+        "polyline": "_asuA}kkbVdAOJAH?L?J@LDLHDBHHHJBJBH@H?J?HCHAFCFCHIJIHIFKBMBK?IAKAIEUMs@c@"
+      },
+      {
+        "instruction": "Merge onto Maharlika Hwy/Pan-Philippine Hwy/Real Rd/Route 1/AH26",
+        "maneuver": "merge",
+        "distanceMeters": 1362,
+        "polyline": "easuA_ikbVIKm@y@k@{@SW}@kAkA_BQWq@y@[c@MQy@iAGGEIIKCEOUQUOSyAuBIMIMYa@W]_@g@EGYc@Wc@aBiCiBiDi@aAUc@e@}@MUMYS_@gBgDo@mA{@aBi@aAOUKMU[WUOO"
+      },
+      {
+        "instruction": "Turn right toward San Vicente Ferrer Rd",
+        "maneuver": "turn-right",
+        "distanceMeters": 24,
+        "polyline": "ontuAmhmbVBIDIFGHE"
+      },
+      {
+        "instruction": "Turn right onto San Vicente Ferrer Rd",
+        "maneuver": "turn-right",
+        "distanceMeters": 54,
+        "polyline": "smtuAoimbVvAf@"
+      },
+      {
+        "instruction": "Turn left onto Bacnotan Rd/Chipeco Ave",
+        "maneuver": "turn-left",
+        "distanceMeters": 215,
+        "polyline": "{jtuAghmbVZi@NUTUfAcAZY`@_@FGB?@A@?@?@@@?@@@@d@z@"
+      },
+      {
+        "instruction": "Turn left to stay on Bacnotan Rd/Chipeco Ave",
+        "maneuver": "turn-left",
+        "distanceMeters": 1076,
+        "polyline": "sbtuAcmmbVdBy@zAw@XOJKNSBGjA{B`BaDrAiCRc@d@cAjD}Gp@qABCFMf@_AFKb@w@@G@K?IAKc@}AOa@IWEMAEEIm@aAgAeB"
+      },
+      {
+        "instruction": "Turn right",
+        "maneuver": "turn-right",
+        "distanceMeters": 86,
+        "polyline": "}lsuAk_obVz@y@JKf@i@"
+      }
+    ]
+  },
+  "14.19430,121.16029>14.20617,121.15239": {
+    "durationSeconds": 504,
+    "steps": [
+      {
+        "instruction": "Head northwest toward Bacnotan Rd/Chipeco Ave",
+        "maneuver": null,
+        "distanceMeters": 86,
+        "polyline": "misuA{bobVg@h@KJ{@x@"
+      },
+      {
+        "instruction": "Turn left onto Bacnotan Rd/Chipeco Ave",
+        "maneuver": "turn-left",
+        "distanceMeters": 1076,
+        "polyline": "}lsuAk_obVfAdBl@`ADH@DDLHVN`@b@|A@J?HAJAFc@v@GJg@~@GLCBq@pAkD|Ge@bASb@sAhCaB`DkAzBCFORKJYN{Av@eBx@"
+      },
+      {
+        "instruction": "Turn right to stay on Bacnotan Rd/Chipeco Ave",
+        "maneuver": "turn-right",
+        "distanceMeters": 215,
+        "polyline": "sbtuAcmmbVe@{@AAAAA?AAA?A?A@C?GFa@^[XgAbAUTOT[h@"
+      },
+      {
+        "instruction": "Turn right onto San Vicente Ferrer Rd",
+        "maneuver": "turn-right",
+        "distanceMeters": 99,
+        "polyline": "{jtuAghmbVwAg@_@OGAGAE?C@GDEF"
+      },
+      {
+        "instruction": "Turn right onto Maharlika Hwy/Pan-Philippine Hwy/Real Rd",
+        "maneuver": "turn-right",
+        "distanceMeters": 788,
+        "polyline": "{otuAsimbVs@_@s@c@}BmAmAs@w@k@k@a@i@c@YWeB{Aq@m@_CuBi@e@OMKKu@q@KIUQ_@WqBmBk@i@"
+      },
+      {
+        "instruction": "Turn left after McDonald's (on the right)",
+        "maneuver": "turn-left",
+        "distanceMeters": 193,
+        "polyline": "kruuAafnbVMHOL]\\EFYZGHg@h@i@f@}@r@MB"
+      },
+      {
+        "instruction": "Turn left onto CMC Ave",
+        "maneuver": "turn-left",
+        "distanceMeters": 76,
+        "polyline": "mzuuAs~mbVFRAR\\~A"
+      },
+      {
+        "instruction": "Turn left",
+        "maneuver": "turn-left",
+        "distanceMeters": 50,
+        "polyline": "iyuuAkzmbVJGz@m@"
+      },
+      {
+        "instruction": "Turn right",
+        "maneuver": "turn-right",
+        "distanceMeters": 194,
+        "polyline": "awuuAa|mbVb@rA`@nB?Dj@hC"
+      }
+    ]
+  },
+  "14.45535,121.00715>14.55738,121.02274": {
+    "durationSeconds": 2162,
+    "steps": [
+      {
+        "instruction": "Head north on El Grande Ave toward Aguirre Ave",
+        "maneuver": null,
+        "distanceMeters": 1404,
+        "polyline": "yhfwAifqaVmBQyASaBIg@Cg@Ec@Ca@AsCI_AEu@Eu@Gg@E_AUkA[iAW_AWs@SwGwAiCk@}@O[AUAyAD}BLi@A_@?]CUG_@K]MQSGEW[{@aAMMKGSI_@K]CyAEIAGCGE"
+      },
+      {
+        "instruction": "Continue onto N. Lopez Ave",
+        "maneuver": null,
+        "distanceMeters": 229,
+        "polyline": "_thwAixqaVCCAAACAA?AAA?A?AACCMCICKAICICKEIa@y@Uc@GKKQGKEIY]e@_@WSMI"
+      },
+      {
+        "instruction": "Turn right onto Dr Arcadio Santos Ave/Parañaque - Sucat Rd/Route 63",
+        "maneuver": "turn-right",
+        "distanceMeters": 3476,
+        "polyline": "i{hwA}braV^w@^w@|@cCj@qAPa@Xu@HUjAmDn@{An@sARk@BGPc@Lc@BGL_@@CRm@lAuDHQz@iBd@wAtAqDVu@FOFML[FSBEJ[Pc@BC@CNa@HORe@FQZu@rAgDPg@`@oATi@Rk@Ri@vAyDBITk@@Er@gBJU|@cChAqCpAcDPa@To@\\}@n@uAfAcCr@_BXm@N_@FMBCP_@P_@R_@P_@vAuCv@eB`A{BHSFMfA}Bf@cA`@aALWBIBGFMBGBGN]Re@d@oARg@ZmAx@iD@KDQFa@z@iFDUb@yCRqABMHc@Hc@Hc@RwA"
+      },
+      {
+        "instruction": "Take the Sucat ramp on the left to Makati/Manila/Skyway",
+        "maneuver": "ramp-left",
+        "distanceMeters": 898,
+        "polyline": "_gfwAcxwaVAK?CAE@EJo@RcAF]@Ep@cDHc@@W@I?G?GAK?ICIAIAIAAaAcEQa@K]Oi@Mg@EMCGEOAACG?ACCEGIEACSKGAKCKAIAQ@C?g@@[@w@?[?Y?o@@wACC?gA@gA@_@@]@Y@[@I?C@A?A@CB"
+      },
+      {
+        "instruction": "Merge onto Metro Manila Skyway",
+        "maneuver": "merge",
+        "distanceMeters": 8224,
+        "polyline": "y~fwActxaVK?K?kD@qA?aG?gJCwA@iF@c@@oD?kB?_FB_F@eF?aA?q@@u@AgB?gA?gA@{@?mE@aB@_D@aC?aC?}B@_C?}@?}@?sB@uBBcB?aB?}@?{@?yE@U?kFAkB?mB?gA?gA?u@@]AiABaBFaBHu@HYDs@Hu@HWDaCb@k@Lc@J[H}@Ra@LuBp@uAd@sAf@eDvA_EfBmAh@aBt@i@P{Ap@wAp@oCfA_Ab@sEpB_FxBgBv@gBt@yCtAOFiDzA_Bp@c@R{BbA}@`@s@Xs@ZwCrAqD`BgCfAm@Xe@Rc@Na@NcBj@{Bn@i@LSFkDp@{@R{@Rq@N{@PSHw@Vw@ZiDxA}@^iEjBcBt@ILEBc@TkAj@C@MBQHgBbAq@`@{@d@[LaBv@e@ReDvAsAl@mBx@_Bp@aCdAiChA_@NKDqCnAgElBk@TwAt@KDkAj@eIlDc@P_@Rc@PMFQHcAh@}@h@oCjB}A`AqBpAcAn@eAl@mBv@"
+      },
+      {
+        "instruction": "Take exit Magallanes to merge onto Maharlika Hwy/Pan-Philippine Hwy/South Luzon Expy/Route 1/AH26/R-3",
+        "maneuver": "ramp-right",
+        "distanceMeters": 1308,
+        "polyline": "smtwAsmtaVY?K@[J}BhAsAj@uAj@}BfAmB`AE@A@A@CNi@Ta@RoCnA{@^iBx@cBt@s@Z_A`@A?YNC@EB{BbAqEpBID_@P{DbBC@_@N}EtB"
+      },
+      {
+        "instruction": "Take the exit toward Cubao",
+        "maneuver": "ramp-right",
+        "distanceMeters": 642,
+        "polyline": "mnvwAkjsaVO@KBOFKBs@\\C@YNw@\\oAj@UHSBQ?m@EOCOEi@SYOWUQUQYa@aAIMGMq@oAGKk@_Ai@w@UWIKw@u@][CACAGA"
+      },
+      {
+        "instruction": "Merge onto Epifanio de los Santos Ave/Maharlika Hwy/Pan-Philippine Hwy/Route 1/AH26/C-4",
+        "maneuver": "merge",
+        "distanceMeters": 772,
+        "polyline": "siwwAyvsaVm@w@ACUYy@iA_@g@MQyC}DmA}A}BsCiC}CEGy@cAmA}Aq@s@o@u@"
+      },
+      {
+        "instruction": "Take the ramp to Ayala",
+        "maneuver": null,
+        "distanceMeters": 541,
+        "polyline": "afxwAuxtaVW[EICGEEQWUY?AWY?AKMIKY]IIOOW[WYUYKKMOcAsASYACMa@oBmCQ[u@cAu@cA"
+      },
+      {
+        "instruction": "Turn left onto Ayala Ave",
+        "maneuver": "turn-left",
+        "distanceMeters": 757,
+        "polyline": "iyxwA}puaVMUa@T[Pc@d@UZeBbB}AdBUPeBbBaBdBUTy@fAIJ_BrBoDbG"
+      },
+      {
+        "instruction": "Turn right onto Makati Ave",
+        "maneuver": "turn-right",
+        "distanceMeters": 446,
+        "polyline": "{uywAartaVeE{AoBu@g@SWMaA]g@S{Ak@k@YgB_A"
+      },
+      {
+        "instruction": "Sharp left onto Paseo de Roxas",
+        "maneuver": "turn-sharp-left",
+        "distanceMeters": 433,
+        "polyline": "klzwAm}taV_@QFh@Pr@b@|BJ`@Hb@Jb@Hb@~@rETdADRLv@BJ"
+      }
+    ]
+  },
+  "14.55738,121.02274>14.38159,120.87915": {
+    "durationSeconds": 2919,
+    "steps": [
+      {
+        "instruction": "Head west on Paseo de Roxas toward Paseo Center - Sedeno Pedestrian Underpass",
+        "maneuver": null,
+        "distanceMeters": 174,
+        "polyline": "sfzwAcgtaVTbAr@hCJb@J`@JZ"
+      },
+      {
+        "instruction": "Sharp left onto Ayala Ave",
+        "maneuver": "turn-sharp-left",
+        "distanceMeters": 967,
+        "polyline": "eczwAs}saVRTX[JUNYfG}Kb@w@BEP_@R]R]JQLSR_@\\o@^u@Zk@d@s@|@cAn@s@HKl@m@BA@Cd@k@xAyAxB{BZg@"
+      },
+      {
+        "instruction": "Keep right to stay on Ayala Ave",
+        "maneuver": "keep-right",
+        "distanceMeters": 177,
+        "polyline": "abywAohuaVDGbDoCTUh@m@"
+      },
+      {
+        "instruction": "Turn right",
+        "maneuver": "turn-right",
+        "distanceMeters": 211,
+        "polyline": "wzxwAkouaVdApAlD~DJL"
+      },
+      {
+        "instruction": "Slight left onto the ramp to Magallanes/Baclaran",
+        "maneuver": "ramp-left",
+        "distanceMeters": 403,
+        "polyline": "wrxwAkfuaV\\NB@@@BB`AjAb@h@~BtCb@h@v@dALRnAfBDJNR"
+      },
+      {
+        "instruction": "Merge onto Epifanio de los Santos Ave/Maharlika Hwy/Pan-Philippine Hwy/Route 1/AH26/C-4",
+        "maneuver": "merge",
+        "distanceMeters": 820,
+        "polyline": "ycxwA{ttaVlCfDjB|BfNhQBDRTBDz@`A~@xAJL`@j@R^"
+      },
+      {
+        "instruction": "Keep left to continue on Epifanio de los Santos Ave/C-4",
+        "maneuver": "keep-left",
+        "distanceMeters": 1239,
+        "polyline": "}ewwAspsaVh@t@@BHLHNFHd@`ALTFLHL\\p@DLFNN`@JVR`@HPHRL^HRDHL^JXRn@FR\\dALb@Vr@j@`CNp@H\\@HJf@PfAJdA?@Fj@BPR|@HdAVrCT|CJ|ATrDD|@D^Fp@BbA"
+      },
+      {
+        "instruction": "Take the exit on the left toward NAIA Domestic",
+        "maneuver": "ramp-left",
+        "distanceMeters": 862,
+        "polyline": "cqvwAcmqaVF^BZ?H@RDl@HlA?@Bb@HhAZ|EF`ADl@Dt@D`@JlBF`A@L?NBHJRPLJHFBJBNBD?B?v@CZAB?H?TABA`FMT?HAjAED@D@B?VD"
+      },
+      {
+        "instruction": "Merge onto Aurora Blvd",
+        "maneuver": "merge",
+        "distanceMeters": 113,
+        "polyline": "}zuwA}mpaVt@CtCM"
+      },
+      {
+        "instruction": "Take the ramp on the left onto E6",
+        "maneuver": "ramp-left",
+        "distanceMeters": 2785,
+        "polyline": "qtuwAonpaVf@QPARCTCRCD?^GVGd@KrBg@n@M^IdAUNCfCg@B?tAYhAWJAXG^GXGTCTCTCR?DAJ?`@?ZAJ?J?F?F@F@F@F@B@@@DBB@BBBBBDBBBFHNBFBH@F?D@D?DAHALALC`@Ed@ATCT?H?D?F?P@N?FI~@E\\CPCTGl@Ap@Fv@FZDTH\\Px@HZVtALn@Ld@@JJ`@Hb@DNPn@FPFRDJLRTZf@^`@PTFRBNBH?R@N?N?VEtBQxAKhBQpAIfBMRARALAL?h@CzA@zB?zBIhBOp@IlAIbAEh@Ed@A^B\\Ff@J`AZv@VVJx@b@j@\\d@\\\\VPRHLP`@Nh@DNBJ@H?H?J?ZCr@AJ]lECh@EbA"
+      },
+      {
+        "instruction": "Take the exit toward Cavite",
+        "maneuver": "ramp-right",
+        "distanceMeters": 916,
+        "polyline": "_lrwA}{naVGFGFADADAHAH[~G?L@LFX@DHNFHRLLHPDTDR?ZB`@@`@@l@@nAD`@@T@@?d@Bv@DH@p@DT@pAHn@DfAH`AJz@JzD^`AH^DTB@@@?BBDF"
+      },
+      {
+        "instruction": "Merge onto Cavitex/Manila - Cavite Expy/E3/R-1",
+        "maneuver": "merge",
+        "distanceMeters": 11499,
+        "polyline": "egqwAwhnaVlBVdC`@xCj@fFx@hBZdEr@VD`@FD@`APbCb@nCf@HBZDbBXbCb@rB`@VFLBv@Ph@JPDVFZD`Dl@p@LZF~AZnB^pBb@r@LzDv@~Bd@tEdApCz@nDtAnClApBdAf@Xp@`@~@l@h@\\fBtA~AtAjAbAz@t@lA`AfBdBrBfCf@f@bClBnA`AnHtDxEpC|JdGhDxBf@^~AlAbBxA~@~@h@f@nBzBn@x@v@bAh@n@~@jATXv@bAr@z@l@v@Z`@p@v@T\\dAtA|@lAh@~@TVV`@RZNTPZv@pAv@vATh@T`@Zb@Xd@jAjBbBxCbAfBRZjAzBl@nAp@zAVb@`AxBl@bBx@vBt@xBd@rAp@xBP~@J\\X`AdFfR`BlGdA|DNf@l@~BnCdLVjAf@~B`@pBPz@j@|Cx@nEDl@DTHb@XtAL`ALr@L|@Nx@NfAHr@PlAd@xDf@pEp@pGLlANrAXjCZfCRvABPD`@XnB`@nCJl@PnAHb@@LDTP`Af@vCHf@RlAXzAn@fDFVNf@zAxGJb@FVpAfFvAlFj@jCr@zBNh@L`@L`@Tr@n@lBV|@r@vBPd@f@vAL^JVHZbBbFnAxCf@jAp@`BL\\NZjDdIzA~CJTJRl@jAvAzC`@v@v@zAJZZh@`A~Az@z@n@p@zBnANJNF~@`@t@ZnBd@hBTZHRN@@B?r@@pCFzAHLBLBFBD@D@"
+      },
+      {
+        "instruction": "Slight left to merge onto Binakayan Diversion Rd/Covelandia Rd/R-1",
+        "maneuver": "ramp-left",
+        "distanceMeters": 6996,
+        "polyline": "ukewA}j_aVh@ENBf@Rb@Ld@NTHPHJDLBJ@R?Z?N?f@IZKPIVMFCh@UVEb@AHB|AP?@fAHL@PAPH`@NB@xAz@|@f@PHf@TPHx@`@ZPZLFDNHr@\\fAh@~CdBr@f@RNXRf@h@`Ap@@@RPXVDBn@j@NLr@j@NLb@b@DDFFVVRNrBdBRNb@XRPXVPPNP\\b@\\`@j@r@RXTXz@tAx@pARXTb@`@z@\\r@Rb@`@bAj@jAJT^`AJNN\\HPDJDFrC`GHPxBhFLV`A|Bl@vAh@lAN\\FNDHlAfCV^NZBB`@r@LVr@lA~@|Ab@r@\\h@b@l@d@n@^h@PZx@fAJLHJT\\tCdDDD`AfAnBrB`CdCb@h@X\\`BlBf@l@FFZ\\vAxAn@p@PPf@f@lApAl@p@d@d@pClCd@h@p@x@Xb@LNT\\V^TZfErG|D`GHJ`@n@BDDFRZ\\f@RXt@|@@@FHHN^d@PNZTvAnA\\ZNPNNHDTRRPLJb@\\h@\\bCrBd@\\NFRFHFjA`AHFdCvBx@l@NNb@^z@t@ZVNLjB|AXTTRZX~@r@|@n@vA|@v@\\`@NRFND`@FlAPZDvF|@zARj@H@?VD^Hv@HTDxBZjDh@j@F\\FL@ZFTDJ@RDTBHBz@Ll@H`@FDDB@B@B?`@HhDd@fBV`ARTFPDt@Rd@P`A`@j@Zl@b@"
+      },
+      {
+        "instruction": "Turn left onto Maple Grove Blvd W",
+        "maneuver": "turn-left",
+        "distanceMeters": 503,
+        "polyline": "wh|vAsvw`VHHJIHGRK~Aq@^QDADCDAD?DAZ@J?fCFjABx@?jB@dD@h@Ad@A"
+      },
+      {
+        "instruction": "Continue straight onto Maple Grove-General Trias Poblacion Rd S",
+        "maneuver": "straight",
+        "distanceMeters": 731,
+        "polyline": "mm{vAgyw`VR?^ATC^Cj@G|@Kj@GTAVCr@Cb@Cp@Ab@?d@@l@@d@Bl@@f@@N?r@An@Ab@Eh@E`AK|@Md@I^E\\EB?r@ITC\\C`@At@E"
+      },
+      {
+        "instruction": "Continue onto NIA Road",
+        "maneuver": null,
+        "distanceMeters": 818,
+        "polyline": "wdzvAk}w`VRATALAz@Ih@GLCTCREJEPGx@_@BA`@Qh@Wf@SVOPIPGRIVKFC^OTKTITG?AXK^ITENCJCHAHAFAHCRGVGNE@AVILEJAL?F?D?D@D@HDXPLLHFFFHFFFHNHJDHBDJP@FBHDPBL@P@P?RAf@At@AjA@R"
+      },
+      {
+        "instruction": "Turn left",
+        "maneuver": "turn-left",
+        "distanceMeters": 129,
+        "polyline": "ecyvAszw`VB?H@N@F?V@XB\\B~AHN@"
+      },
+      {
+        "instruction": "Turn right",
+        "maneuver": "turn-right",
+        "distanceMeters": 71,
+        "polyline": "_|xvAyyw`VDPb@fB"
+      },
+      {
+        "instruction": "Turn right",
+        "maneuver": "turn-right",
+        "distanceMeters": 19,
+        "polyline": "uzxvA_vw`Va@D"
+      },
+      {
+        "instruction": "Turn left",
+        "maneuver": "turn-left",
+        "distanceMeters": 427,
+        "polyline": "w{xvAyuw`V?R?D?H@\\HhAVpBBJBLTd@@FBF@FDZF\\FTHNDDNLNJZR\\TNJJHdAv@bAn@"
+      },
+      {
+        "instruction": "Turn left onto General Trias Dr",
+        "maneuver": "turn-left",
+        "distanceMeters": 742,
+        "polyline": "gpxvA{aw`VR[RYLQJONUPWJOFKBELQJOJOHMdHeJj@y@xAsBJOBGDIBG@E@IDQHo@@Q@I?K@y@?Y?OBuB"
+      }
+    ]
+  }
+}

@@ -28,6 +28,11 @@ android {
         // in .env.local (the GCP project Google has allowlisted for Fleet
         // Engine's Delivery API). Keep these in sync.
         buildConfigField("String", "FLEET_ENGINE_PROVIDER_ID", "\"mobility-partner-access\"")
+
+        // true: "Start Driving" plays the backend's shared simulated drive
+        // (in sync with the web driver view and admin map, no Navigation SDK
+        // routing calls). false: real turn-by-turn via NavigationActivity.
+        buildConfigField("boolean", "SIMULATED_DRIVE", "true")
     }
 
     buildFeatures {
